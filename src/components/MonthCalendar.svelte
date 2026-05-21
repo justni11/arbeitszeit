@@ -7,6 +7,7 @@
 
   export let data: MonthData;
   export let selectedDate: Date;
+  export let compact: boolean = false; // sidebar mode on desktop
 
   const dispatch = createEventDispatcher<{
     selectDay: Date;
@@ -17,98 +18,93 @@
   $: totals = calcTotals(data);
   $: todayKey = toDateKey(new Date());
   $: selectedKey = toDateKey(selectedDate);
-
-  // Pad calendar grid: start week on Monday
   $: firstDay = days[0];
-  $: startPadding = (firstDay.getDay() + 6) % 7; // days to pad before the 1st (Mon=0)
-  $: gridCells = [
-    ...Array.from({ length: startPadding }, () => null),
-    ...days,
-  ];
+  $: startPad = (firstDay.getDay() + 6) % 7;
+  $: grid = [...Array(startPad).fill(null), ...days];
 </script>
 
-<div class="month-cal">
+<div class="month-cal" class:compact>
 
-  <!-- Month header -->
-  <div class="month-header">
-    <button class="arrow-btn" aria-label="Vorheriger Monat" on:click={() => dispatch('navigateMonth', -1)}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+  <!-- Header -->
+  <div class="cal-header">
+    <button class="nav-btn" aria-label="Vorheriger Monat" on:click={() => dispatch('navigateMonth', -1)}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <div class="month-title">
-      <span class="month-name">{MONTH_NAMES[data.month - 1]}</span>
-      <span class="month-year">{data.year}</span>
+    <div class="cal-title">
+      <span class="cal-month">{MONTH_NAMES[data.month - 1]}</span>
+      <span class="cal-year">{data.year}</span>
     </div>
-    <button class="arrow-btn" aria-label="Nächster Monat" on:click={() => dispatch('navigateMonth', 1)}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    <button class="nav-btn" aria-label="Nächster Monat" on:click={() => dispatch('navigateMonth', 1)}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
   </div>
 
   <!-- Weekday labels -->
-  <div class="weekday-row">
-    {#each ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] as wd}
-      <div class="wd-label" class:wd-weekend={wd === 'Sa' || wd === 'So'}>{wd}</div>
+  <div class="wd-row">
+    {#each ['Mo','Di','Mi','Do','Fr','Sa','So'] as wd}
+      <div class="wd" class:wd-end={wd === 'Sa' || wd === 'So'}>{wd}</div>
     {/each}
   </div>
 
-  <!-- Calendar grid -->
+  <!-- Calendar grid — fills remaining space -->
   <div class="cal-grid">
-    {#each gridCells as day}
-      {#if day === null}
-        <div class="cal-cell empty"></div>
+    {#each grid as day}
+      {#if !day}
+        <div class="cell empty"></div>
       {:else}
         {@const key = toDateKey(day)}
-        {@const entry = data.entries[key] ?? null}
+        {@const e = data.entries[key] ?? null}
         {@const wt = getWochentag(day)}
         {@const isSa = wt === 'Sa'}
         {@const isSo = wt === 'So'}
-        {@const az = entry ? calcArbeitszeit(entry.beginn, entry.ende, entry.pause, entry.arbeitsort) : 0}
+        {@const az = e ? calcArbeitszeit(e.beginn, e.ende, e.pause, e.arbeitsort) : 0}
         {@const isToday = key === todayKey}
-        {@const isSelected = key === selectedKey}
+        {@const isSel = key === selectedKey}
         <button
-          class="cal-cell"
-          class:sa={isSa}
-          class:so={isSo}
-          class:today={isToday}
-          class:selected={isSelected}
-          class:has-entry={!!entry}
+          class="cell"
+          class:sa={isSa} class:so={isSo}
+          class:today={isToday} class:sel={isSel}
+          class:filled={!!e}
           on:click={() => dispatch('selectDay', day)}
+          aria-label="{day.getDate()}. {MONTH_NAMES[data.month-1]}"
+          aria-pressed={isSel}
         >
-          <span class="cal-day-num">{day.getDate()}</span>
-          {#if az > 0}
-            <span class="cal-hours">{formatDecimal(az)}</span>
-          {:else if entry?.arbeitsort === 'Frei'}
-            <span class="cal-tag frei-tag">Frei</span>
-          {:else if entry?.arbeitsort === 'Feiertag'}
-            <span class="cal-tag ft-tag">Ft</span>
+          <span class="cell-num">{day.getDate()}</span>
+          {#if e?.arbeitsort === 'Frei'}
+            <span class="cell-tag tag-frei">—</span>
+          {:else if e?.arbeitsort === 'Feiertag'}
+            <span class="cell-tag tag-ft">Ft</span>
+          {:else if az > 0}
+            <span class="cell-hours">{formatDecimal(az)}</span>
           {/if}
-          {#if entry?.uebernachtung}
-            <span class="cal-dot nacht-dot"></span>
+          {#if e?.uebernachtung}
+            <span class="cell-dot"></span>
           {/if}
         </button>
       {/if}
     {/each}
   </div>
 
-  <!-- Month totals -->
-  <div class="month-totals">
-    <div class="mt-item">
-      <span class="mt-val">{formatDecimal(totals.gesamtStunden) || '0'}</span>
-      <span class="mt-lbl">Gesamt Std.</span>
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stat">
+      <span class="s-val">{formatDecimal(totals.gesamtStunden) || '0'}</span>
+      <span class="s-lbl">Gesamt</span>
     </div>
-    <div class="mt-divider"></div>
-    <div class="mt-item">
-      <span class="mt-val">{formatDecimal(totals.arbeitszeitSum) || '0'}</span>
-      <span class="mt-lbl">Arbeitszeit</span>
+    <div class="s-div"></div>
+    <div class="stat">
+      <span class="s-val">{formatDecimal(totals.arbeitszeitSum) || '0'}</span>
+      <span class="s-lbl">Arbeitszeit</span>
     </div>
-    <div class="mt-divider"></div>
-    <div class="mt-item">
-      <span class="mt-val">{totals.uebernachtungCount}</span>
-      <span class="mt-lbl">Nächte</span>
+    <div class="s-div"></div>
+    <div class="stat">
+      <span class="s-val">{totals.uebernachtungCount}</span>
+      <span class="s-lbl">Nächte</span>
     </div>
-    <div class="mt-divider"></div>
-    <div class="mt-item">
-      <span class="mt-val">{totals.spesenSum} €</span>
-      <span class="mt-lbl">Spesen</span>
+    <div class="s-div"></div>
+    <div class="stat">
+      <span class="s-val">{totals.spesenSum} €</span>
+      <span class="s-lbl">Spesen</span>
     </div>
   </div>
 
@@ -119,195 +115,120 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    overflow-y: auto;
+    background: #0f172a;
+    overflow: hidden;
   }
 
   /* Header */
-  .month-header {
+  .cal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
-    background: #0f172a;
-    border-bottom: 1px solid #1e293b;
+    padding: 0.75rem 1rem;
+    flex-shrink: 0;
   }
 
-  .month-title {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.1rem;
+  .nav-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    color: #94a3b8; cursor: pointer; transition: all 0.15s;
   }
+  .nav-btn:hover { background: #334155; color: #e2e8f0; }
 
-  .month-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #f1f5f9;
-  }
-
-  .month-year {
-    font-size: 0.78rem;
-    color: #64748b;
-  }
-
-  .arrow-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    color: #94a3b8;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .arrow-btn:hover { background: #334155; color: #e2e8f0; }
+  .cal-title { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .cal-month { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+  .cal-year  { font-size: 0.72rem; color: #64748b; }
 
   /* Weekday row */
-  .weekday-row {
+  .wd-row {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    padding: 0.5rem 0.75rem 0.25rem;
-    background: #0f172a;
+    padding: 0 0.5rem;
+    flex-shrink: 0;
   }
-
-  .wd-label {
+  .wd {
     text-align: center;
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: 700;
     color: #475569;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 0.25rem 0;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0;
   }
-  .wd-weekend { color: #3b82f6; }
+  .wd-end { color: #3b82f6; }
 
-  /* Calendar grid */
+  /* Grid — stretches to fill remaining height */
   .cal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-    padding: 0.5rem 0.75rem;
-    background: #0f172a;
+    grid-auto-rows: 1fr;
     flex: 1;
+    padding: 0.25rem 0.5rem;
+    gap: 3px;
+    min-height: 0;
   }
 
-  .cal-cell {
-    aspect-ratio: 1;
+  .cell {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid transparent;
     cursor: pointer;
     background: #1e293b;
     position: relative;
-    transition: all 0.15s;
-    gap: 1px;
-    min-height: 44px;
+    transition: all 0.12s;
     padding: 2px;
+    min-height: 0;
+    gap: 1px;
   }
 
-  .cal-cell.empty {
-    background: transparent;
-    border: none;
-    cursor: default;
-  }
+  .cell.empty { background: transparent; cursor: default; border: none; }
+  .cell:not(.empty):hover { background: #334155; }
+  .cell.sa { background: #172554; border-color: #1e3a8a22; }
+  .cell.so { background: #2d1b0e; border-color: #78350f22; }
+  .cell.today  { border-color: #3b82f6 !important; }
+  .cell.sel    { box-shadow: 0 0 0 2px #3b82f6; background: #1e3a5f !important; }
+  .cell.filled .cell-num { color: #e2e8f0; }
 
-  .cal-cell:not(.empty):hover { background: #334155; }
+  .cell-num  { font-size: 0.78rem; font-weight: 600; color: #475569; line-height: 1; }
+  .cell-hours { font-size: 0.6rem; font-weight: 700; color: #38bdf8; line-height: 1; }
+  .cell-tag  { font-size: 0.55rem; font-weight: 700; border-radius: 2px; padding: 0 2px; line-height: 1.4; }
+  .tag-frei  { color: #475569; }
+  .tag-ft    { background: #422006; color: #fb923c; }
 
-  .cal-cell.sa { background: #172554; }
-  .cal-cell.so { background: #2d1b0e; }
-
-  .cal-cell.today {
-    border-color: #3b82f6;
-  }
-
-  .cal-cell.selected {
-    box-shadow: 0 0 0 2px #3b82f6;
-  }
-
-  .cal-cell.has-entry .cal-day-num {
-    color: #f1f5f9;
-  }
-
-  .cal-day-num {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #64748b;
-    line-height: 1;
-  }
-
-  .cal-hours {
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: #38bdf8;
-    line-height: 1;
-  }
-
-  .cal-tag {
-    font-size: 0.55rem;
-    font-weight: 700;
-    padding: 1px 3px;
-    border-radius: 3px;
-    line-height: 1;
-  }
-
-  .frei-tag  { background: #1e293b; color: #64748b; }
-  .ft-tag    { background: #422006; color: #fb923c; }
-
-  .cal-dot {
+  .cell-dot {
     position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 5px;
-    height: 5px;
+    bottom: 3px; right: 3px;
+    width: 4px; height: 4px;
     border-radius: 50%;
+    background: #8b5cf6;
   }
 
-  .nacht-dot { background: #8b5cf6; }
-
-  /* Totals */
-  .month-totals {
+  /* Stats strip */
+  .stats-strip {
     display: flex;
     align-items: center;
-    padding: 1rem;
+    padding: 0.6rem 1rem;
     background: #1e293b;
     border-top: 1px solid #334155;
-    gap: 0.5rem;
-  }
-
-  .mt-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
-  }
-
-  .mt-val {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #f1f5f9;
-  }
-
-  .mt-lbl {
-    font-size: 0.62rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    text-align: center;
-  }
-
-  .mt-divider {
-    width: 1px;
-    height: 32px;
-    background: #334155;
     flex-shrink: 0;
+    gap: 0.25rem;
   }
+
+  .stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }
+  .s-val { font-size: 0.88rem; font-weight: 700; color: #f1f5f9; }
+  .s-lbl { font-size: 0.58rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; }
+  .s-div { width: 1px; height: 28px; background: #334155; flex-shrink: 0; }
+
+  /* Compact (sidebar) mode */
+  .compact .cal-header { padding: 0.5rem 0.75rem; }
+  .compact .cell { border-radius: 6px; }
+  .compact .cell-num { font-size: 0.72rem; }
+  .compact .cal-month { font-size: 0.88rem; }
+  .compact .stats-strip { padding: 0.5rem 0.75rem; }
 
   @media print { .month-cal { display: none; } }
 </style>

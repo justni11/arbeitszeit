@@ -91,6 +91,11 @@
     color: #3b82f6;
   }
 
+  /* Hide on desktop — sidebar replaces navigation */
+  @media (min-width: 1024px) {
+    .bottom-nav { display: none; }
+  }
+
   @media print {
     .bottom-nav { display: none; }
   }
