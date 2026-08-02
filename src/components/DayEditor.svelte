@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
+  import { backOut } from 'svelte/easing';
   import { DEFAULT_PAUSE, DEFAULT_SPESEN } from '../lib/constants';
   import { calcArbeitszeit } from '../lib/calculator';
   import { formatDecimal, isWeekend, getWochentag, formatDate } from '../lib/dateUtils';
@@ -69,8 +71,8 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_interactive_supports_focus -->
-<div class="backdrop" on:click|self={() => dispatch('cancel')} role="dialog" aria-modal="true">
-  <div class="modal">
+<div class="backdrop" on:click|self={() => dispatch('cancel')} role="dialog" aria-modal="true" transition:fade={{ duration: 180 }}>
+  <div class="modal" transition:fly={{ y: 32, duration: 420, easing: backOut }}>
 
     <!-- Header -->
     <div class="modal-header">
@@ -128,31 +130,36 @@
         </div>
       {/if}
 
-      <!-- Toggles -->
-      <div class="toggles">
-        <div class="toggle-item">
+      <!-- Toggles — iOS-style switch rows -->
+      <div class="switch-list">
+        <div class="switch-row">
           <span class="toggle-label">So + Feiertag</span>
-          <button class="toggle-btn" class:on={soFeiertag}
-            on:click={() => (soFeiertag = !soFeiertag)}>
-            {soFeiertag ? 'Ja' : 'Nein'}
-          </button>
+          <button
+            class="ios-switch" class:on={soFeiertag}
+            role="switch" aria-checked={soFeiertag} aria-label="So + Feiertag"
+            on:click={() => (soFeiertag = !soFeiertag)}
+          ><span class="ios-switch-knob"></span></button>
         </div>
 
         {#if !isFrei && !isFeiertag}
-          <div class="toggle-item">
+          <div class="switch-divider"></div>
+          <div class="switch-row">
             <span class="toggle-label">Übernachtung</span>
-            <button class="toggle-btn" class:on={uebernachtung}
-              on:click={() => handleUebernachtung(!uebernachtung)}>
-              {uebernachtung ? 'Ja' : 'Nein'}
-            </button>
-          </div>
-
-          <div class="toggle-item">
-            <span class="toggle-label">Spesen (€)</span>
-            <input type="number" class="spesen-input" bind:value={spesen} min="0" step="1" />
+            <button
+              class="ios-switch" class:on={uebernachtung}
+              role="switch" aria-checked={uebernachtung} aria-label="Übernachtung"
+              on:click={() => handleUebernachtung(!uebernachtung)}
+            ><span class="ios-switch-knob"></span></button>
           </div>
         {/if}
       </div>
+
+      {#if !isFrei && !isFeiertag}
+        <div class="field half">
+          <label class="field-label" for="spesen">Spesen (€)</label>
+          <input id="spesen" type="number" class="field-input" bind:value={spesen} min="0" step="1" />
+        </div>
+      {/if}
 
       <!-- Live hours preview -->
       {#if !isFrei}
@@ -313,56 +320,57 @@
   }
   .field-row .field { flex: 1; }
 
-  /* Toggles */
-  .toggles {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+  /* Toggles — iOS-style switch list */
+  .switch-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
   }
 
-  .toggle-item {
+  .switch-row {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.65rem 0.85rem;
   }
+
+  .switch-divider { height: 1px; background: var(--border); margin: 0 0.85rem; }
 
   .toggle-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .toggle-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-tertiary);
-    padding: 0.5rem 1rem;
     font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    min-height: 44px;
-    transition: all 0.15s;
-  }
-  .toggle-btn.on {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
+    font-weight: 500;
+    color: var(--text-primary);
   }
 
-  .spesen-input {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-primary);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.95rem;
-    width: 80px;
-    outline: none;
+  /* Real iOS switch: track + sliding knob */
+  .ios-switch {
+    position: relative;
+    width: 46px; height: 28px;
+    padding: 2px;
+    background: #dfe3ea;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
   }
-  .spesen-input:focus { border-color: var(--accent); }
+  .ios-switch.on { background: var(--accent); }
+
+  .ios-switch-knob {
+    display: block;
+    width: 24px; height: 24px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25), 0 1px 1px rgba(0,0,0,.1);
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .ios-switch.on .ios-switch-knob { transform: translateX(18px); }
+
+  .ios-switch:active { transform: none; opacity: 1; }
+  .ios-switch:active .ios-switch-knob { transform: scale(0.92); }
+  .ios-switch.on:active .ios-switch-knob { transform: translateX(18px) scale(0.92); }
 
   /* Hours preview */
   .hours-preview {

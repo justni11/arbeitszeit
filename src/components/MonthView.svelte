@@ -128,7 +128,7 @@
     min-width: 640px;
   }
 
-  thead th {
+  .timesheet thead th {
     padding: 0.75rem 0.85rem;
     text-align: left;
     font-size: 0.72rem;
@@ -162,7 +162,11 @@
   .print-timesheet thead th {
     border: 1px solid #000;
     padding: 2pt 3pt;
-    background: #fff;
+    /* No opaque background here on purpose: rotated header labels below
+       intentionally spill into neighboring cells, and an opaque fill
+       would paint over (clip) that overflow. Paper is white anyway. */
+    background: transparent;
+    color: #000;
     font-weight: bold;
     font-size: 8pt;
     vertical-align: bottom;
@@ -177,16 +181,17 @@
   .p-x     { width: 24pt; }
 
   .rotated {
-    height: 55pt;
+    height: 64pt;
     white-space: nowrap;
+    overflow: visible;
   }
 
   .rotated span {
     display: inline-block;
-    transform: rotate(-55deg);
+    transform: rotate(-45deg);
     transform-origin: bottom left;
     padding-bottom: 2pt;
-    margin-left: 10pt;
+    margin-left: 6pt;
   }
 
   /* ===== PRINT ===== */

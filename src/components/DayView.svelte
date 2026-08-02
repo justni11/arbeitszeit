@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { fly } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import { DEFAULT_PAUSE, DEFAULT_SPESEN, MONTH_NAMES } from '../lib/constants';
   import { calcArbeitszeit } from '../lib/calculator';
   import { formatDecimal, isWeekend, getWochentag, toDateKey } from '../lib/dateUtils';
@@ -84,7 +86,9 @@
     dispatch('change', deleteEntry(data, dateKey));
   }
 
+  let navDirection = 1;
   function goTo(delta: number) {
+    navDirection = delta;
     const next = new Date(date);
     next.setDate(date.getDate() + delta);
     dispatch('navigate', next);
@@ -109,9 +113,17 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div class="date-center">
-        <div class="dc-wt">{wochentag}</div>
-        <div class="dc-num">{date.getDate()}</div>
-        <div class="dc-my">{MONTH_NAMES[date.getMonth()]} {date.getFullYear()}</div>
+        {#key dateKey}
+          <div
+            class="date-center-inner"
+            in:fly={{ x: navDirection * 28, duration: 240, easing: cubicOut }}
+            out:fly={{ x: navDirection * -28, duration: 180, easing: cubicOut }}
+          >
+            <div class="dc-wt">{wochentag}</div>
+            <div class="dc-num">{date.getDate()}</div>
+            <div class="dc-my">{MONTH_NAMES[date.getMonth()]} {date.getFullYear()}</div>
+          </div>
+        {/key}
       </div>
       <button class="arrow" on:click={() => goTo(1)} aria-label="Nächster Tag">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -167,20 +179,29 @@
       </div>
     {/if}
 
-    <!-- Toggles -->
-    <div class="toggles">
-      <button class="tog" class:tog-on={soFeiertag} on:click={() => { soFeiertag = !soFeiertag; mark(); }}>
-        <span class="tog-icon">☀️</span>
-        <span class="tog-name">So + Feiertag</span>
-        <span class="tog-val">{soFeiertag ? 'Ja' : 'Nein'}</span>
-      </button>
+    <!-- Toggles — iOS-style switch rows -->
+    <div class="switch-list">
+      <div class="switch-row">
+        <span class="sr-icon">☀️</span>
+        <span class="sr-label">So + Feiertag</span>
+        <button
+          class="ios-switch" class:on={soFeiertag}
+          role="switch" aria-checked={soFeiertag} aria-label="So + Feiertag"
+          on:click={() => { soFeiertag = !soFeiertag; mark(); }}
+        ><span class="ios-switch-knob"></span></button>
+      </div>
 
       {#if !isFrei && !isFeiertag && !isUrlaub}
-        <button class="tog" class:tog-on={uebernachtung} on:click={() => setUebernachtung(!uebernachtung)}>
-          <span class="tog-icon">🌙</span>
-          <span class="tog-name">Übernachtung</span>
-          <span class="tog-val">{uebernachtung ? 'Ja' : 'Nein'}</span>
-        </button>
+        <div class="switch-divider"></div>
+        <div class="switch-row">
+          <span class="sr-icon">🌙</span>
+          <span class="sr-label">Übernachtung</span>
+          <button
+            class="ios-switch" class:on={uebernachtung}
+            role="switch" aria-checked={uebernachtung} aria-label="Übernachtung"
+            on:click={() => setUebernachtung(!uebernachtung)}
+          ><span class="ios-switch-knob"></span></button>
+        </div>
       {/if}
     </div>
 
@@ -251,7 +272,8 @@
   }
   .arrow:hover { background: #fff; color: var(--text-primary); }
 
-  .date-center { text-align: center; flex: 1; }
+  .date-center { position: relative; text-align: center; flex: 1; min-height: 4.6rem; }
+  .date-center-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; }
   .dc-wt  { font-size: 0.72rem; font-weight: 700; color: var(--sat); text-transform: uppercase; letter-spacing: 0.14em; }
   .hero-so .dc-wt { color: var(--sun); }
   .dc-num { font-size: 3.4rem; font-weight: 800; color: var(--text-primary); line-height: 1; letter-spacing: -0.02em; }
@@ -330,21 +352,52 @@
   .sb:hover { background: var(--accent-soft); }
   .sv { min-width: 56px; text-align: center; color: var(--text-primary); font-size: 0.95rem; font-weight: 600; }
 
-  /* Toggles */
-  .toggles { display: flex; gap: 0.75rem; }
-
-  .tog {
-    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
-    padding: 0.75rem 0.5rem;
-    background: var(--surface-alt); border: 1px solid var(--border); border-radius: 12px;
-    cursor: pointer; transition: all 0.2s;
+  /* Toggles — iOS-style switch list */
+  .switch-list {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
   }
-  .tog.tog-on { background: var(--accent-soft); border-color: var(--accent-soft-border); }
 
-  .tog-icon { font-size: 1.2rem; }
-  .tog-name { font-size: 0.67rem; color: var(--text-tertiary); font-weight: 600; text-align: center; }
-  .tog-val  { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); }
-  .tog-on .tog-val { color: var(--accent-dark); }
+  .switch-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .sr-icon { font-size: 1.05rem; flex-shrink: 0; }
+  .sr-label { flex: 1; font-size: 0.9rem; font-weight: 500; color: var(--text-primary); }
+
+  .switch-divider { height: 1px; background: var(--border); margin: 0 0.85rem; }
+
+  /* Real iOS switch: track + sliding knob */
+  .ios-switch {
+    position: relative;
+    width: 50px; height: 30px;
+    padding: 2px;
+    background: #dfe3ea;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+  .ios-switch.on { background: var(--accent); }
+
+  .ios-switch-knob {
+    display: block;
+    width: 26px; height: 26px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25), 0 1px 1px rgba(0,0,0,.1);
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .ios-switch.on .ios-switch-knob { transform: translateX(20px); }
+
+  /* Switches shouldn't inherit the global button press-scale — they animate the knob instead */
+  .ios-switch:active { transform: none; opacity: 1; }
+  .ios-switch:active .ios-switch-knob { transform: scale(0.92); }
+  .ios-switch.on:active .ios-switch-knob { transform: translateX(20px) scale(0.92); }
 
   /* Actions */
   .actions { display: flex; gap: 0.75rem; padding: 1rem; flex-shrink: 0; }

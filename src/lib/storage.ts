@@ -53,3 +53,57 @@ export function saveRecentLocation(location: string): void {
   const updated = [location, ...current.filter(l => l !== location)].slice(0, MAX_RECENT_LOCATIONS);
   localStorage.setItem(RECENT_LOCATIONS_KEY, JSON.stringify(updated));
 }
+
+type BackupPayload = {
+  version: 1;
+  exportedAt: string;
+  workerName: string;
+  recentLocations: string[];
+  months: Record<string, MonthData>; // key = "YYYY_MM", matches monthKey() minus the prefix
+};
+
+function createBackup(): BackupPayload {
+  const months: Record<string, MonthData> = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith(STORAGE_PREFIX)) continue;
+    try {
+      months[key.slice(STORAGE_PREFIX.length)] = JSON.parse(localStorage.getItem(key)!) as MonthData;
+    } catch {
+      // skip corrupted month entry
+    }
+  }
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    workerName: loadWorkerName(),
+    recentLocations: loadRecentLocations(),
+    months,
+  };
+}
+
+export function downloadBackup(): void {
+  const json = JSON.stringify(createBackup(), null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `arbeitszeit_sicherung_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Restores a backup produced by downloadBackup(). Throws if the file isn't a valid backup. */
+export function restoreBackup(json: string): void {
+  const parsed = JSON.parse(json) as Partial<BackupPayload>;
+  if (!parsed || typeof parsed !== 'object' || typeof parsed.months !== 'object' || !parsed.months) {
+    throw new Error('Ungültige Sicherungsdatei');
+  }
+  for (const [key, data] of Object.entries(parsed.months)) {
+    localStorage.setItem(`${STORAGE_PREFIX}${key}`, JSON.stringify(data));
+  }
+  if (typeof parsed.workerName === 'string') saveWorkerName(parsed.workerName);
+  if (Array.isArray(parsed.recentLocations)) {
+    localStorage.setItem(RECENT_LOCATIONS_KEY, JSON.stringify(parsed.recentLocations));
+  }
+}

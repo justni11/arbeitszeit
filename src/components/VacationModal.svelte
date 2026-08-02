@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
+  import { backOut } from 'svelte/easing';
 
   const dispatch = createEventDispatcher<{
     confirm: { von: string; bis: string };
@@ -34,8 +36,8 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="overlay" on:click|self={() => dispatch('cancel')}>
-  <div class="modal">
+<div class="overlay" on:click|self={() => dispatch('cancel')} transition:fade={{ duration: 180 }}>
+  <div class="modal" transition:fly={{ y: 32, duration: 420, easing: backOut }}>
     <div class="modal-header">
       <div class="modal-icon-wrap">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
