@@ -132,13 +132,15 @@
     font-size: 1.6rem;
   }
 
-  /* Selection band */
+  /* Selection band — must stay translucent: it's painted (via DOM order
+     + z-index) on top of .drum-scroll, so an opaque fill here would
+     hide the selected digits underneath instead of just tinting them. */
   .drum-highlight {
     position: absolute;
     top: calc(var(--item-h) * 2);
     left: 0; right: 0;
     height: var(--item-h);
-    background: var(--accent-soft);
+    background: rgba(47, 111, 237, 0.1);
     border-top: 1px solid var(--accent-soft-border);
     border-bottom: 1px solid var(--accent-soft-border);
     pointer-events: none;
