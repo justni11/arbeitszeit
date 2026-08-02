@@ -48,6 +48,7 @@
   $: arbeitszeit = calcArbeitszeit(beginn, ende, pause, arbeitsort);
   $: isFrei     = arbeitsort === 'Frei';
   $: isFeiertag = arbeitsort === 'Feiertag';
+  $: isUrlaub   = arbeitsort === 'Urlaub';
   $: hasContent = !!arbeitsort || !!beginn || !!ende;
 
   function mark() { isDirty = true; }
@@ -56,6 +57,8 @@
     arbeitsort = v; isDirty = true;
     if (v === 'Feiertag') {
       soFeiertag = true; beginn = ''; ende = ''; pause = 0; spesen = 0; uebernachtung = false;
+    } else if (v === 'Urlaub') {
+      soFeiertag = false; beginn = ''; ende = ''; pause = 0; spesen = 0; uebernachtung = false;
     } else if (v === 'Frei') {
       beginn = ''; ende = ''; pause = 0; spesen = 0; uebernachtung = false;
       soFeiertag = weekend.isSaturday || weekend.isSunday;
@@ -124,6 +127,7 @@
   <div class="chips">
     <button class="chip c-frei"    on:click={() => setArbeitsort('Frei')}>Frei</button>
     <button class="chip c-holiday" on:click={() => setArbeitsort('Feiertag')}>Feiertag</button>
+    <button class="chip c-urlaub"  on:click={() => setArbeitsort('Urlaub')}>Urlaub</button>
     {#each recentLocations as loc}
       <button class="chip c-recent" on:click={() => setArbeitsort(loc)}>{loc}</button>
     {/each}
@@ -142,7 +146,7 @@
     </div>
 
     <!-- Time pickers -->
-    {#if !isFrei && !isFeiertag}
+    {#if !isFrei && !isFeiertag && !isUrlaub}
       <div class="time-row">
         <TimePicker bind:value={beginn} label="Beginn" on:change={mark} />
         <div class="time-arrow">→</div>
@@ -168,7 +172,7 @@
         <span class="tog-val">{soFeiertag ? 'Ja' : 'Nein'}</span>
       </button>
 
-      {#if !isFrei && !isFeiertag}
+      {#if !isFrei && !isFeiertag && !isUrlaub}
         <button class="tog" class:tog-on={uebernachtung} on:click={() => setUebernachtung(!uebernachtung)}>
           <span class="tog-icon">🌙</span>
           <span class="tog-name">Übernachtung</span>
@@ -265,6 +269,8 @@
   .chip { white-space: nowrap; border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; flex-shrink: 0; }
   .c-frei    { background: #1e293b; border-color: #334155; color: #94a3b8; }
   .c-holiday { background: #422006; border-color: #7c2d12; color: #fb923c; }
+  .c-urlaub  { background: #14532d; border-color: #166534; color: #4ade80; }
+  .c-urlaub:hover { background: #166534; color: #fff; }
   .c-recent  { background: #1e3a5f; border-color: #1d4ed8; color: #60a5fa; }
   .c-recent:hover { background: #1d4ed8; color: #fff; }
 

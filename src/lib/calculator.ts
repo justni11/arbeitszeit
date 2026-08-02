@@ -7,7 +7,7 @@ export function calcArbeitszeit(
   pause: number,
   arbeitsort: string
 ): number {
-  if (arbeitsort === 'Feiertag') return 8;
+  if (arbeitsort === 'Feiertag' || arbeitsort === 'Urlaub') return 8;
   if (!beginn || !ende) return 0;
 
   let start = parseTimeToDecimal(beginn);

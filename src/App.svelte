@@ -3,13 +3,15 @@
   import { MONTH_NAMES } from './lib/constants';
   import {
     loadMonth, saveMonth, loadWorkerName, saveWorkerName,
-    loadRecentLocations, saveRecentLocation
+    loadRecentLocations, saveRecentLocation, setEntry
   } from './lib/storage';
+  import { toDateKey } from './lib/dateUtils';
   import DayView    from './components/DayView.svelte';
   import WeekView   from './components/WeekView.svelte';
   import MonthCalendar from './components/MonthCalendar.svelte';
   import BottomNav  from './components/BottomNav.svelte';
   import MonthView  from './components/MonthView.svelte'; // print only
+  import VacationModal from './components/VacationModal.svelte';
   import type { MonthData } from './lib/types';
 
   type View = 'day' | 'week' | 'month';
@@ -23,6 +25,7 @@
   let workerName = '';
   let editingName = false;
   let recentLocations: string[] = [];
+  let showVacation = false;
 
   onMount(() => {
     workerName    = loadWorkerName();
@@ -62,6 +65,34 @@
   }
 
   function nameBlur() { editingName = false; saveWorkerName(workerName); }
+
+  function applyVacation(e: CustomEvent<{ von: string; bis: string }>) {
+    const { von, bis } = e.detail;
+    const start = new Date(von);
+    const end = new Date(bis);
+    const monthUpdates = new Map<string, MonthData>();
+
+    const cur = new Date(start);
+    while (cur <= end) {
+      const dow = cur.getDay();
+      if (dow !== 0 && dow !== 6) {
+        const y = cur.getFullYear(), m = cur.getMonth() + 1;
+        const key = `${y}-${m}`;
+        if (!monthUpdates.has(key)) monthUpdates.set(key, loadMonth(y, m));
+        const md = monthUpdates.get(key)!;
+        monthUpdates.set(key, setEntry(md, {
+          date: toDateKey(cur), arbeitsort: 'Urlaub',
+          beginn: '', ende: '', pause: 0,
+          soFeiertag: false, uebernachtung: false, spesen: 0,
+        }));
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    for (const [, md] of monthUpdates) saveMonth(md);
+    data = loadMonth(year, month);
+    showVacation = false;
+  }
 </script>
 
 <!-- ===== PRINT OUTPUT ===== -->
@@ -103,6 +134,10 @@
           {workerName || 'Name'}
         </button>
       {/if}
+      <button class="vacation-btn" title="Urlaub eintragen" on:click={() => (showVacation = true)}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Urlaub
+      </button>
       <button class="icon-btn" title="Drucken" on:click={() => window.print()}>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       </button>
@@ -142,7 +177,14 @@
   </div>
 
   <!-- Bottom nav (mobile only — hidden on desktop via CSS) -->
-  <BottomNav {view} on:change={(e) => (view = e.detail)} />
+  <BottomNav active={view} on:change={(e) => (view = e.detail)} />
+
+  {#if showVacation}
+    <VacationModal
+      on:confirm={applyVacation}
+      on:cancel={() => (showVacation = false)}
+    />
+  {/if}
 
 </div>
 
@@ -199,6 +241,15 @@
   }
   .icon-btn:hover { background: #334155; color: #94a3b8; }
 
+  .vacation-btn {
+    display: flex; align-items: center; gap: 0.35rem;
+    background: #1e3a5f; border: 1px solid #1d4ed8;
+    color: #60a5fa; padding: 0.3rem 0.65rem;
+    border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600;
+    transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+  }
+  .vacation-btn:hover { background: #1d4ed8; color: #fff; }
+
   /* ===== BODY ===== */
   .body {
     flex: 1;
@@ -227,28 +278,13 @@
 
   /* ===== RESPONSIVE ===== */
 
-  /* Tablet and up: widen the single-column layout */
-  @media (min-width: 640px) {
-    .app {
-      max-width: 680px;
-      margin: 0 auto;
-      box-shadow: 0 0 60px rgba(0,0,0,0.6);
-    }
-  }
-
   /* Desktop: show sidebar, hide bottom nav */
   @media (min-width: 1024px) {
-    .app {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
     .sidebar { display: flex; flex-direction: column; }
-    /* Bottom nav hidden on desktop via its own media query */
   }
 
-  /* Large desktop: wider layout */
+  /* Large desktop: wider sidebar */
   @media (min-width: 1400px) {
-    .app { max-width: 1280px; }
     .sidebar { width: 340px; }
   }
 

@@ -18,6 +18,7 @@
     : 0;
   $: isFeiertag = entry?.arbeitsort === 'Feiertag';
   $: isFrei = entry?.arbeitsort === 'Frei';
+  $: isUrlaub = entry?.arbeitsort === 'Urlaub';
   $: isWeekend = isSa || isSo;
   $: hasEntry = !!entry && !isFrei;
 </script>
@@ -45,6 +46,7 @@
     class:sunday={isSo}
     class:frei={isFrei}
     class:feiertag={isFeiertag}
+    class:urlaub={isUrlaub}
     class:has-entry={hasEntry}
     on:click={() => dispatch('edit')}
     role="button"
@@ -64,6 +66,8 @@
         <span class="pill pill-frei">Frei</span>
       {:else if isFeiertag}
         <span class="pill pill-feiertag">Feiertag</span>
+      {:else if isUrlaub}
+        <span class="pill pill-urlaub">Urlaub</span>
       {:else}
         <span class="ort-text">{entry?.arbeitsort ?? ''}</span>
       {/if}
@@ -110,6 +114,7 @@
   .sunday   { background: #2d1b0e; }
   .frei     { background: #0f172a; }
   .feiertag { background: #1a1a07; }
+  .urlaub   { background: #052e16; }
 
   .saturday td, .sunday td { color: #93c5fd; }
   .sunday td { color: #fcd34d; }
@@ -152,6 +157,7 @@
   }
   .pill-frei    { background: #1e293b; color: #64748b; border: 1px solid #334155; }
   .pill-feiertag { background: #422006; color: #fb923c; border: 1px solid #7c2d12; }
+  .pill-urlaub  { background: #14532d; color: #4ade80; border: 1px solid #166534; }
 
   /* Hours */
   .col-num { width: 4rem; text-align: right; font-variant-numeric: tabular-nums; }

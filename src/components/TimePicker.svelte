@@ -23,9 +23,8 @@
     return { h: hh.padStart(2, '0'), m: snapped };
   }
 
-  $: parsed = parse(value);
-  let h = parsed.h;
-  let m = parsed.m;
+  let h = parse(value).h;
+  let m = parse(value).m;
 
   // Keep h/m in sync when value changes externally
   $: {

@@ -74,6 +74,8 @@
             <span class="cell-tag tag-frei">—</span>
           {:else if e?.arbeitsort === 'Feiertag'}
             <span class="cell-tag tag-ft">Ft</span>
+          {:else if e?.arbeitsort === 'Urlaub'}
+            <span class="cell-tag tag-ur">Ur</span>
           {:else if az > 0}
             <span class="cell-hours">{formatDecimal(az)}</span>
           {/if}
@@ -198,6 +200,7 @@
   .cell-tag  { font-size: 0.55rem; font-weight: 700; border-radius: 2px; padding: 0 2px; line-height: 1.4; }
   .tag-frei  { color: #475569; }
   .tag-ft    { background: #422006; color: #fb923c; }
+  .tag-ur    { background: #14532d; color: #4ade80; }
 
   .cell-dot {
     position: absolute;
