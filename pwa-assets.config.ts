@@ -1,0 +1,16 @@
+import { defineConfig, minimal2023Preset } from '@vite-pwa/assets-generator/config';
+
+export default defineConfig({
+  headLinkOptions: {
+    preset: '2023',
+  },
+  preset: {
+    ...minimal2023Preset,
+    maskable: {
+      sizes: [512],
+      padding: 0.25,
+      resizeOptions: { fit: 'contain', background: '#0f172a' },
+    },
+  },
+  images: ['public/logo.svg'],
+});

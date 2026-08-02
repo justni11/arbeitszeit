@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0f172a"/>
+  <rect x="66" y="66" width="380" height="380" rx="72" fill="#3b82f6"/>
+  <circle cx="256" cy="256" r="128" fill="none" stroke="#0f172a" stroke-width="18" opacity="0.35"/>
+  <path d="M256 176v82l58 34" fill="none" stroke="#eff6ff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="256" y="410" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="72" letter-spacing="4" fill="#eff6ff">IBO</text>
+</svg>
