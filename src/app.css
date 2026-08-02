@@ -4,12 +4,74 @@
   padding: 0;
 }
 
+:root {
+  /* Backdrop */
+  --page-gradient:
+    radial-gradient(1200px 800px at 8% -15%, #d8e6ff 0%, transparent 55%),
+    radial-gradient(1000px 750px at 108% -5%, #ffdcec 0%, transparent 55%),
+    radial-gradient(900px 700px at 50% 115%, #e3f5ec 0%, transparent 50%),
+    linear-gradient(180deg, #f4f6fb 0%, #eceff6 100%);
+
+  /* Surfaces */
+  --surface: #ffffff;
+  --surface-alt: #f4f6fb;
+  --surface-sunken: #edf0f7;
+
+  /* Text */
+  --text-primary: #1c2333;
+  --text-secondary: #5b6577;
+  --text-tertiary: #98a2b3;
+  --text-on-accent: #ffffff;
+
+  /* Borders */
+  --border: #e3e7ef;
+  --border-strong: #d3d9e3;
+
+  /* Accent (brand blue) */
+  --accent: #2f6fed;
+  --accent-dark: #1d54c9;
+  --accent-soft: #eaf1ff;
+  --accent-soft-border: #c9dcff;
+
+  /* Semantic day states */
+  --sat: #2f6fed;
+  --sat-soft: #eaf1ff;
+  --sun: #d9840f;
+  --sun-soft: #fff3e0;
+  --holiday: #e0672a;
+  --holiday-soft: #fff0e6;
+  --vacation: #17a34a;
+  --vacation-soft: #e7f9ee;
+  --night: #7c5cf0;
+  --night-soft: #f1ecfe;
+  --danger: #e0382d;
+  --danger-soft: #fdecea;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(30, 41, 59, .05);
+  --shadow-md: 0 6px 20px rgba(30, 41, 59, .08);
+  --shadow-lg: 0 24px 60px rgba(30, 41, 59, .18);
+
+  /* Liquid glass */
+  --glass-bg: rgba(255, 255, 255, .55);
+  --glass-bg-strong: rgba(255, 255, 255, .75);
+  --glass-border: rgba(255, 255, 255, .8);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-shadow: 0 8px 32px rgba(30, 41, 59, .1), inset 0 1px 0 rgba(255, 255, 255, .6);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+}
+
 html, body {
   height: 100%;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-family: -apple-system, 'SF Pro Text', 'Inter', 'Segoe UI', Arial, sans-serif;
   font-size: 16px;
-  background: #0f172a;
-  color: #1e293b;
+  background: var(--page-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -21,6 +83,14 @@ html, body {
 
 button, input, select, textarea {
   font-family: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease;
+}
+button:active {
+  transform: scale(0.96);
 }
 
 /* ===== PRINT RESET ===== */

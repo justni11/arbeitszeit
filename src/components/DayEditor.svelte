@@ -182,8 +182,9 @@
   .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(28, 35, 51, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -192,12 +193,14 @@
   }
 
   .modal {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 16px;
+    background: var(--glass-bg-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
     width: 100%;
     max-width: 420px;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    box-shadow: var(--glass-shadow), var(--shadow-lg);
     overflow: hidden;
   }
 
@@ -207,8 +210,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid #334155;
-    background: #0f172a;
+    border-bottom: 1px solid var(--border);
   }
 
   .modal-date-info {
@@ -218,7 +220,7 @@
   }
 
   .modal-wochentag {
-    background: #3b82f6;
+    background: var(--accent);
     color: #fff;
     font-size: 0.75rem;
     font-weight: 700;
@@ -229,20 +231,20 @@
   .modal-date {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--text-primary);
   }
 
   .close-btn {
     background: none;
     border: none;
-    color: #64748b;
+    color: var(--text-tertiary);
     cursor: pointer;
     padding: 0.25rem;
     border-radius: 4px;
     display: flex;
     align-items: center;
   }
-  .close-btn:hover { color: #e2e8f0; background: #334155; }
+  .close-btn:hover { color: var(--text-primary); background: var(--surface-alt); }
 
   /* Chips */
   .chips {
@@ -261,12 +263,12 @@
     border: 1px solid transparent;
     transition: all 0.15s;
   }
-  .chip-frei    { background: #1e293b; border-color: #334155; color: #94a3b8; }
-  .chip-frei:hover { background: #334155; color: #e2e8f0; }
-  .chip-holiday { background: #422006; border-color: #7c2d12; color: #fb923c; }
-  .chip-holiday:hover { background: #7c2d12; }
-  .chip-recent  { background: #1e3a5f; border-color: #1d4ed8; color: #60a5fa; }
-  .chip-recent:hover { background: #1d4ed8; color: #fff; }
+  .chip-frei    { background: var(--surface); border-color: var(--border); color: var(--text-secondary); }
+  .chip-frei:hover { background: var(--surface-alt); color: var(--text-primary); }
+  .chip-holiday { background: var(--holiday-soft); border-color: #f6cfa9; color: var(--holiday); }
+  .chip-holiday:hover { background: var(--holiday); color: #fff; }
+  .chip-recent  { background: var(--accent-soft); border-color: var(--accent-soft-border); color: var(--accent-dark); }
+  .chip-recent:hover { background: var(--accent); color: #fff; }
 
   /* Fields */
   .fields {
@@ -287,23 +289,23 @@
   .field-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .field-input {
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    color: #e2e8f0;
+    color: var(--text-primary);
     padding: 0.6rem 0.75rem;
     font-size: 0.95rem;
     outline: none;
     transition: border-color 0.15s;
     width: 100%;
   }
-  .field-input:focus { border-color: #3b82f6; }
+  .field-input:focus { border-color: var(--accent); }
 
   .field-row {
     display: flex;
@@ -327,16 +329,16 @@
   .toggle-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .toggle-btn {
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    color: #64748b;
+    color: var(--text-tertiary);
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
     font-weight: 600;
@@ -345,35 +347,35 @@
     transition: all 0.15s;
   }
   .toggle-btn.on {
-    background: #1d4ed8;
-    border-color: #3b82f6;
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
   }
 
   .spesen-input {
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    color: #e2e8f0;
+    color: var(--text-primary);
     padding: 0.5rem 0.75rem;
     font-size: 0.95rem;
     width: 80px;
     outline: none;
   }
-  .spesen-input:focus { border-color: #3b82f6; }
+  .spesen-input:focus { border-color: var(--accent); }
 
   /* Hours preview */
   .hours-preview {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #0c4a6e;
-    border: 1px solid #0369a1;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-border);
     border-radius: 8px;
     padding: 0.6rem 0.85rem;
   }
-  .hours-label { font-size: 0.82rem; color: #7dd3fc; font-weight: 600; }
-  .hours-value { font-size: 1.1rem; font-weight: 700; color: #38bdf8; }
+  .hours-label { font-size: 0.82rem; color: var(--accent-dark); font-weight: 600; }
+  .hours-value { font-size: 1.1rem; font-weight: 700; color: var(--accent-dark); }
 
   /* Footer */
   .modal-footer {
@@ -381,8 +383,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.85rem 1.25rem;
-    border-top: 1px solid #334155;
-    background: #0f172a;
+    border-top: 1px solid var(--border);
   }
 
   .btn-group { display: flex; gap: 0.5rem; }
@@ -391,9 +392,9 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    background: transparent;
-    border: 1px solid #991b1b;
-    color: #f87171;
+    background: var(--danger-soft);
+    border: 1px solid #f6c6c1;
+    color: var(--danger);
     border-radius: 8px;
     padding: 0.5rem 0.85rem;
     font-size: 0.82rem;
@@ -401,12 +402,12 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .btn-delete:hover { background: #7f1d1d; }
+  .btn-delete:hover { background: var(--danger); color: #fff; }
 
   .btn-cancel {
     background: transparent;
-    border: 1px solid #334155;
-    color: #94a3b8;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     border-radius: 8px;
     padding: 0.5rem 0.9rem;
     font-size: 0.85rem;
@@ -414,11 +415,11 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .btn-cancel:hover { background: #334155; color: #e2e8f0; }
+  .btn-cancel:hover { background: var(--surface-alt); color: var(--text-primary); }
 
   .btn-save {
-    background: #3b82f6;
-    border: 1px solid #3b82f6;
+    background: var(--accent);
+    border: 1px solid var(--accent);
     color: #fff;
     border-radius: 8px;
     padding: 0.5rem 1.2rem;
@@ -427,7 +428,7 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .btn-save:hover { background: #2563eb; }
+  .btn-save:hover { background: var(--accent-dark); }
 
   @media print { .backdrop { display: none; } }
 </style>

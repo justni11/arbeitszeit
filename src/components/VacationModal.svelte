@@ -80,7 +80,9 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(28, 35, 51, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -89,33 +91,35 @@
   }
 
   .modal {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 20px;
+    background: var(--glass-bg-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
     padding: 1.5rem;
     width: 100%;
     max-width: 400px;
     display: flex;
     flex-direction: column;
     gap: 1.1rem;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    box-shadow: var(--glass-shadow), var(--shadow-lg);
   }
 
   .modal-header { display: flex; align-items: center; gap: 0.75rem; }
 
   .modal-icon-wrap {
     width: 36px; height: 36px;
-    background: #1e3a5f;
-    border: 1px solid #1d4ed8;
-    border-radius: 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-border);
+    border-radius: 11px;
     display: flex; align-items: center; justify-content: center;
-    color: #60a5fa;
+    color: var(--accent);
     flex-shrink: 0;
   }
 
   .modal-title {
     font-size: 1.05rem; font-weight: 700;
-    color: #f1f5f9; margin: 0;
+    color: var(--text-primary); margin: 0;
   }
 
   .fields {
@@ -127,7 +131,7 @@
   .field { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; }
 
   .field-arrow {
-    color: #475569;
+    color: var(--text-tertiary);
     font-size: 1.1rem;
     padding-bottom: 0.9rem;
     flex-shrink: 0;
@@ -135,51 +139,51 @@
 
   .fl {
     font-size: 0.7rem; font-weight: 700;
-    color: #64748b; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.07em;
   }
 
   .date-in {
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 10px;
-    color: #e2e8f0;
+    color: var(--text-primary);
     padding: 0.7rem 0.75rem;
     font-size: 0.95rem;
     outline: none;
     transition: border-color 0.15s;
     width: 100%;
-    color-scheme: dark;
+    color-scheme: light;
   }
-  .date-in:focus { border-color: #3b82f6; }
+  .date-in:focus { border-color: var(--accent); }
 
   .info {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: #0f172a;
-    border: 1px solid #1e3a5f;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 0.85rem 1rem;
   }
 
   .info-num {
     font-size: 2rem; font-weight: 800;
-    color: #38bdf8;
+    color: var(--accent-dark);
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
     line-height: 1;
   }
 
   .info-txt {
-    font-size: 0.82rem; color: #94a3b8; line-height: 1.4;
+    font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;
   }
 
-  .info-sub { font-size: 0.72rem; color: #475569; }
+  .info-sub { font-size: 0.72rem; color: var(--text-tertiary); }
 
   .info-warn {
-    background: #450a0a;
-    border-color: #7f1d1d;
-    color: #f87171;
+    background: var(--danger-soft);
+    border-color: #f6c6c1;
+    color: var(--danger);
     font-size: 0.82rem;
     padding: 0.75rem 1rem;
     border-radius: 10px;
@@ -189,18 +193,19 @@
 
   .btn-cancel {
     flex: 1; padding: 0.85rem;
-    background: transparent; border: 1px solid #334155;
-    color: #64748b; border-radius: 12px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-secondary); border-radius: 12px;
     font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
   }
-  .btn-cancel:hover { background: #334155; color: #94a3b8; }
+  .btn-cancel:hover { background: var(--surface-alt); color: var(--text-primary); }
 
   .btn-confirm {
     flex: 2; padding: 0.85rem;
-    background: #3b82f6; border: 1px solid #3b82f6;
+    background: var(--accent); border: 1px solid var(--accent);
     color: #fff; border-radius: 12px;
     font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 6px 16px rgba(47,111,237,.3);
   }
-  .btn-confirm:hover:not(:disabled) { background: #2563eb; }
-  .btn-confirm:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-confirm:hover:not(:disabled) { background: var(--accent-dark); }
+  .btn-confirm:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 </style>

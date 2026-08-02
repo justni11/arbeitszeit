@@ -118,7 +118,7 @@
     justify-content: center;
     font-size: 1.4rem;
     font-weight: 500;
-    color: #475569;
+    color: var(--text-tertiary);
     cursor: pointer;
     scroll-snap-align: center;
     transition: color 0.15s, font-weight 0.15s;
@@ -127,7 +127,7 @@
   }
 
   .drum-selected {
-    color: #f1f5f9;
+    color: var(--text-primary);
     font-weight: 700;
     font-size: 1.6rem;
   }
@@ -138,9 +138,9 @@
     top: calc(var(--item-h) * 2);
     left: 0; right: 0;
     height: var(--item-h);
-    background: rgba(59, 130, 246, 0.12);
-    border-top: 1px solid rgba(59, 130, 246, 0.3);
-    border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+    background: var(--accent-soft);
+    border-top: 1px solid var(--accent-soft-border);
+    border-bottom: 1px solid var(--accent-soft-border);
     pointer-events: none;
     z-index: 1;
     border-radius: 8px;
@@ -157,10 +157,10 @@
   }
   .drum-fade-top {
     top: 0;
-    background: linear-gradient(to bottom, #0f172a 0%, transparent 100%);
+    background: linear-gradient(to bottom, var(--surface-alt) 0%, transparent 100%);
   }
   .drum-fade-bottom {
     bottom: 0;
-    background: linear-gradient(to top, #0f172a 0%, transparent 100%);
+    background: linear-gradient(to top, var(--surface-alt) 0%, transparent 100%);
   }
 </style>

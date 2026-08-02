@@ -102,25 +102,28 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="day-view" on:touchstart={onTouchStart} on:touchend={onTouchEnd}>
 
-  <!-- Date strip -->
-  <div class="date-strip" class:strip-sa={isSa} class:strip-so={isSo}>
-    <button class="arrow" on:click={() => goTo(-1)} aria-label="Vorheriger Tag">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div class="date-center">
-      <div class="dc-wt">{wochentag}</div>
-      <div class="dc-num">{date.getDate()}</div>
-      <div class="dc-my">{MONTH_NAMES[date.getMonth()]} {date.getFullYear()}</div>
+  <!-- Hero card: date + hours in one elevated surface -->
+  <div class="hero-card" class:hero-sa={isSa} class:hero-so={isSo}>
+    <div class="hero-top">
+      <button class="arrow" on:click={() => goTo(-1)} aria-label="Vorheriger Tag">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="date-center">
+        <div class="dc-wt">{wochentag}</div>
+        <div class="dc-num">{date.getDate()}</div>
+        <div class="dc-my">{MONTH_NAMES[date.getMonth()]} {date.getFullYear()}</div>
+      </div>
+      <button class="arrow" on:click={() => goTo(1)} aria-label="Nächster Tag">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
-    <button class="arrow" on:click={() => goTo(1)} aria-label="Nächster Tag">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-  </div>
 
-  <!-- Hours hero -->
-  <div class="hours-hero" class:lit={arbeitszeit > 0}>
-    <span class="hz-num">{arbeitszeit > 0 ? formatDecimal(arbeitszeit) : '—'}</span>
-    <span class="hz-unit">Stunden</span>
+    <div class="hero-divider"></div>
+
+    <div class="hero-hours" class:lit={arbeitszeit > 0}>
+      <span class="hz-num">{arbeitszeit > 0 ? formatDecimal(arbeitszeit) : '—'}</span>
+      <span class="hz-unit">Stunden</span>
+    </div>
   </div>
 
   <!-- Quick chips -->
@@ -215,90 +218,103 @@
     overscroll-behavior: contain;
   }
 
-  /* Date strip */
-  .date-strip {
+  /* Hero card — date nav + hours reading, one elevated surface */
+  .hero-card {
+    margin: 1rem 1rem 0.85rem;
+    background: linear-gradient(160deg, var(--accent-soft), #fff 75%);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .hero-sa { background: linear-gradient(160deg, var(--sat-soft), #fff 75%); }
+  .hero-so { background: linear-gradient(160deg, var(--sun-soft), #fff 75%); }
+
+  .hero-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
-    background: linear-gradient(135deg, #1e3a5f, #1e293b);
-    border-bottom: 1px solid #334155;
-    flex-shrink: 0;
+    padding: 1.15rem 1rem;
   }
-  .strip-sa { background: linear-gradient(135deg, #1e3a5f, #172554); }
-  .strip-so { background: linear-gradient(135deg, #422006, #2d1b0e); }
 
   .arrow {
-    width: 44px; height: 44px;
+    width: 42px; height: 42px;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    color: #94a3b8; cursor: pointer;
-    transition: background 0.15s;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--glass-border);
+    border-radius: 13px;
+    color: var(--text-secondary); cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
     flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
   }
-  .arrow:hover { background: rgba(255,255,255,0.14); color: #e2e8f0; }
+  .arrow:hover { background: #fff; color: var(--text-primary); }
 
   .date-center { text-align: center; flex: 1; }
-  .dc-wt  { font-size: 0.75rem; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.12em; }
-  .strip-so .dc-wt { color: #fbbf24; }
-  .dc-num { font-size: 3.2rem; font-weight: 800; color: #f1f5f9; line-height: 1; }
-  .dc-my  { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
+  .dc-wt  { font-size: 0.72rem; font-weight: 700; color: var(--sat); text-transform: uppercase; letter-spacing: 0.14em; }
+  .hero-so .dc-wt { color: var(--sun); }
+  .dc-num { font-size: 3.4rem; font-weight: 800; color: var(--text-primary); line-height: 1; letter-spacing: -0.02em; }
+  .dc-my  { font-size: 0.78rem; color: var(--text-tertiary); margin-top: 0.15rem; font-weight: 500; }
 
-  /* Hours hero */
-  .hours-hero {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 1.1rem 1rem 0.75rem;
-    background: #0f172a;
-    flex-shrink: 0;
+  .hero-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 1.25rem;
   }
-  .hz-num  { font-size: 2.6rem; font-weight: 800; color: #334155; line-height: 1; font-variant-numeric: tabular-nums; transition: color 0.2s; }
-  .hours-hero.lit .hz-num { color: #38bdf8; }
-  .hz-unit { font-size: 0.7rem; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.2rem; }
+
+  /* Hours reading, folded into the hero card */
+  .hero-hours {
+    display: flex; align-items: baseline; justify-content: center; gap: 0.4rem;
+    padding: 0.85rem 1rem 1rem;
+  }
+  .hz-num  { font-size: 1.9rem; font-weight: 800; color: var(--border-strong); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; transition: color 0.2s; }
+  .hero-hours.lit .hz-num { color: var(--accent-dark); }
+  .hz-unit { font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
 
   /* Chips */
   .chips {
     display: flex; gap: 0.4rem;
-    padding: 0 1rem 0.75rem;
-    background: #0f172a;
+    padding: 0 1rem 0.85rem;
     overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; flex-shrink: 0;
   }
   .chips::-webkit-scrollbar { display: none; }
 
-  .chip { white-space: nowrap; border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; flex-shrink: 0; }
-  .c-frei    { background: #1e293b; border-color: #334155; color: #94a3b8; }
-  .c-holiday { background: #422006; border-color: #7c2d12; color: #fb923c; }
-  .c-urlaub  { background: #14532d; border-color: #166534; color: #4ade80; }
-  .c-urlaub:hover { background: #166534; color: #fff; }
-  .c-recent  { background: #1e3a5f; border-color: #1d4ed8; color: #60a5fa; }
-  .c-recent:hover { background: #1d4ed8; color: #fff; }
+  .chip { white-space: nowrap; border-radius: 999px; padding: 0.35rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; flex-shrink: 0; }
+  .c-frei    { background: var(--surface); border-color: var(--border); color: var(--text-secondary); box-shadow: var(--shadow-sm); }
+  .c-holiday { background: var(--holiday-soft); border-color: #f6cfa9; color: var(--holiday); }
+  .c-urlaub  { background: var(--vacation-soft); border-color: #b7e8c8; color: var(--vacation); }
+  .c-urlaub:hover { background: var(--vacation); color: #fff; }
+  .c-recent  { background: var(--accent-soft); border-color: var(--accent-soft-border); color: var(--accent-dark); }
+  .c-recent:hover { background: var(--accent); color: #fff; }
 
   /* Form */
   .form-card {
     margin: 0 1rem;
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 16px;
-    padding: 1rem;
-    display: flex; flex-direction: column; gap: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem;
+    display: flex; flex-direction: column; gap: 1.1rem;
     flex-shrink: 0;
+    box-shadow: var(--shadow-md);
+    transition: box-shadow 0.2s;
   }
 
   .field { display: flex; flex-direction: column; gap: 0.35rem; }
-  .fl { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; }
+  .fl { font-size: 0.72rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.07em; }
   .fi {
-    background: #0f172a; border: 1px solid #334155; border-radius: 10px;
-    color: #e2e8f0; padding: 0.75rem 0.9rem; font-size: 1rem; outline: none;
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text-primary); padding: 0.75rem 0.9rem; font-size: 1rem; outline: none;
     transition: border-color 0.15s; width: 100%;
   }
-  .fi:focus { border-color: #3b82f6; }
+  .fi:focus { border-color: var(--accent); }
 
   /* Time row */
   .time-row {
     display: flex; align-items: flex-end; justify-content: center; gap: 0.75rem;
   }
-  .time-arrow { color: #475569; font-size: 1.2rem; padding-bottom: 1.2rem; flex-shrink: 0; }
+  .time-arrow { color: var(--text-tertiary); font-size: 1.2rem; padding-bottom: 1.2rem; flex-shrink: 0; }
 
   /* Inline field (label + control side by side) */
   .field-inline {
@@ -308,11 +324,11 @@
   /* Stepper */
   .stepper {
     display: flex; align-items: center;
-    background: #0f172a; border: 1px solid #334155; border-radius: 10px; overflow: hidden;
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
   }
-  .sb { width: 44px; height: 44px; background: none; border: none; color: #60a5fa; font-size: 1.4rem; cursor: pointer; transition: background 0.1s; }
-  .sb:hover { background: #1e293b; }
-  .sv { min-width: 56px; text-align: center; color: #e2e8f0; font-size: 0.95rem; font-weight: 600; }
+  .sb { width: 44px; height: 44px; background: none; border: none; color: var(--accent); font-size: 1.4rem; cursor: pointer; transition: background 0.1s; }
+  .sb:hover { background: var(--accent-soft); }
+  .sv { min-width: 56px; text-align: center; color: var(--text-primary); font-size: 0.95rem; font-weight: 600; }
 
   /* Toggles */
   .toggles { display: flex; gap: 0.75rem; }
@@ -320,33 +336,33 @@
   .tog {
     flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
     padding: 0.75rem 0.5rem;
-    background: #0f172a; border: 1px solid #334155; border-radius: 12px;
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: 12px;
     cursor: pointer; transition: all 0.2s;
   }
-  .tog.tog-on { background: #1e3a5f; border-color: #3b82f6; }
+  .tog.tog-on { background: var(--accent-soft); border-color: var(--accent-soft-border); }
 
   .tog-icon { font-size: 1.2rem; }
-  .tog-name { font-size: 0.67rem; color: #64748b; font-weight: 600; text-align: center; }
-  .tog-val  { font-size: 0.78rem; font-weight: 700; color: #475569; }
-  .tog-on .tog-val { color: #60a5fa; }
+  .tog-name { font-size: 0.67rem; color: var(--text-tertiary); font-weight: 600; text-align: center; }
+  .tog-val  { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); }
+  .tog-on .tog-val { color: var(--accent-dark); }
 
   /* Actions */
   .actions { display: flex; gap: 0.75rem; padding: 1rem; flex-shrink: 0; }
 
   .btn-del {
-    padding: 0.85rem 1.1rem; background: transparent;
-    border: 1px solid #991b1b; color: #f87171; border-radius: 12px;
+    padding: 0.85rem 1.1rem; background: var(--danger-soft);
+    border: 1px solid #f6c6c1; color: var(--danger); border-radius: 12px;
     font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
   }
-  .btn-del:hover { background: #7f1d1d; }
+  .btn-del:hover { background: var(--danger); color: #fff; }
 
   .btn-save {
     flex: 1; padding: 0.85rem;
-    background: #1e293b; border: 1px solid #334155; color: #475569;
+    background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-tertiary);
     border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
   }
-  .btn-save.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
-  .btn-save.active:hover { background: #2563eb; }
+  .btn-save.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 6px 16px rgba(47,111,237,.3); }
+  .btn-save.active:hover { background: var(--accent-dark); }
 
   @media print { .day-view { display: none; } }
 </style>

@@ -96,32 +96,31 @@
   /* ===== SCREEN ROWS ===== */
   .day-row {
     cursor: pointer;
-    border-bottom: 1px solid #1e3a5f20;
+    border-bottom: 1px solid var(--border);
     transition: background 0.1s;
   }
 
-  .day-row:hover { background: #334155 !important; }
+  .day-row:hover { background: var(--surface-alt) !important; }
 
   .day-row td {
     padding: 0.6rem 0.85rem;
     font-size: 0.875rem;
-    color: #cbd5e1;
+    color: var(--text-secondary);
     white-space: nowrap;
   }
 
   /* Weekend tints */
-  .saturday { background: #172554; }
-  .sunday   { background: #2d1b0e; }
-  .frei     { background: #0f172a; }
-  .feiertag { background: #1a1a07; }
-  .urlaub   { background: #052e16; }
+  .saturday { background: var(--sat-soft); }
+  .sunday   { background: var(--sun-soft); }
+  .frei     { background: var(--surface-alt); }
+  .feiertag { background: var(--holiday-soft); }
+  .urlaub   { background: var(--vacation-soft); }
 
-  .saturday td, .sunday td { color: #93c5fd; }
-  .sunday td { color: #fcd34d; }
+  .saturday td, .sunday td { color: var(--text-primary); }
 
   /* Datum column */
   .col-datum { min-width: 5.5rem; }
-  .date-text { color: #94a3b8; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .date-text { color: var(--text-tertiary); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
 
   /* Tag/Wochentag */
   .col-tag { width: 3rem; }
@@ -129,24 +128,24 @@
     display: inline-block;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #64748b;
+    color: var(--text-tertiary);
     width: 2rem;
     text-align: center;
   }
-  .tag-weekend { color: #60a5fa; }
-  .sunday .tag-weekend { color: #fbbf24; }
+  .tag-weekend { color: var(--sat); }
+  .sunday .tag-weekend { color: var(--sun); }
 
   /* Times */
   .col-time {
     width: 4.5rem;
     font-variant-numeric: tabular-nums;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 0.83rem;
   }
 
   /* Ort */
   .col-ort { min-width: 10rem; }
-  .ort-text { color: #e2e8f0; font-weight: 500; }
+  .ort-text { color: var(--text-primary); font-weight: 500; }
 
   .pill {
     display: inline-block;
@@ -155,16 +154,16 @@
     font-size: 0.75rem;
     font-weight: 600;
   }
-  .pill-frei    { background: #1e293b; color: #64748b; border: 1px solid #334155; }
-  .pill-feiertag { background: #422006; color: #fb923c; border: 1px solid #7c2d12; }
-  .pill-urlaub  { background: #14532d; color: #4ade80; border: 1px solid #166534; }
+  .pill-frei    { background: var(--surface); color: var(--text-tertiary); border: 1px solid var(--border); }
+  .pill-feiertag { background: #fff0e6; color: var(--holiday); border: 1px solid #f6cfa9; }
+  .pill-urlaub  { background: var(--vacation-soft); color: var(--vacation); border: 1px solid #b7e8c8; }
 
   /* Hours */
   .col-num { width: 4rem; text-align: right; font-variant-numeric: tabular-nums; }
   .hours-badge {
     display: inline-block;
-    background: #0c4a6e;
-    color: #38bdf8;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
     font-size: 0.78rem;
     font-weight: 700;
     padding: 0.15rem 0.5rem;
@@ -179,8 +178,8 @@
     height: 8px;
     border-radius: 50%;
   }
-  .dot-so   { background: #f59e0b; }
-  .dot-nacht { background: #8b5cf6; }
+  .dot-so   { background: var(--sun); }
+  .dot-nacht { background: var(--night); }
 
   /* ===== PRINT ROWS ===== */
   .print-row td {

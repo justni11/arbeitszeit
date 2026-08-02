@@ -110,10 +110,11 @@
 <style>
   /* ===== SCREEN CARD ===== */
   .card {
-    background: #1e293b;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    border: 1px solid #334155;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
   }
 
   .table-wrapper {
@@ -132,11 +133,11 @@
     text-align: left;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
     white-space: nowrap;
   }
 
