@@ -127,10 +127,6 @@
   <header class="topbar">
     <div class="tb-left">
       <div class="logo">IBO</div>
-      <div class="tb-titles">
-        <span class="tb-company">IBO TRAFFIC</span>
-        <span class="tb-sub">Arbeitszeiterfassung</span>
-      </div>
     </div>
     <div class="tb-right">
       {#if editingName}
@@ -231,8 +227,8 @@
     flex-shrink: 0; gap: 0.5rem;
     position: relative; z-index: 10;
   }
-  .tb-left  { display: flex; align-items: center; gap: 0.6rem; }
-  .tb-right { display: flex; align-items: center; gap: 0.4rem; }
+  .tb-left  { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+  .tb-right { display: flex; align-items: center; gap: 0.4rem; min-width: 0; flex: 1; justify-content: flex-end; }
 
   .logo {
     width: 30px; height: 30px; background: var(--accent);
@@ -241,23 +237,24 @@
     justify-content: center; letter-spacing: 0.04em; flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(47,111,237,.35);
   }
-  .tb-titles { display: flex; flex-direction: column; line-height: 1.2; }
-  .tb-company { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.03em; }
-  .tb-sub     { font-size: 0.6rem; color: var(--text-tertiary); }
 
   .name-btn {
     display: flex; align-items: center; gap: 0.3rem;
     background: rgba(255,255,255,.5); border: 1px solid var(--glass-border);
     color: var(--text-secondary); padding: 0.3rem 0.6rem;
     border-radius: 999px; cursor: pointer; font-size: 0.75rem;
-    transition: all 0.15s; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: all 0.15s; min-width: 0; flex-shrink: 1;
+    max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .name-btn:hover { background: #fff; color: var(--text-primary); }
 
+  /* min-width: 0 is required here — inputs default to an intrinsic
+     min-width in flex layouts that otherwise overrides max-width and
+     forces the row to overflow. */
   .name-in {
     background: #fff; border: 1px solid var(--accent); color: var(--text-primary);
     padding: 0.3rem 0.55rem; border-radius: 999px; font-size: 0.78rem;
-    outline: none; max-width: 130px;
+    outline: none; min-width: 0; flex-shrink: 1; max-width: 110px;
   }
 
   .icon-btn {
