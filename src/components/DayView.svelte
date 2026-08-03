@@ -7,7 +7,7 @@
   import { formatDecimal, isWeekend, getWochentag, toDateKey } from '../lib/dateUtils';
   import { setEntry, deleteEntry } from '../lib/storage';
   import TimePicker from './TimePicker.svelte';
-  import type { DayEntry, MonthData } from '../lib/types';
+  import type { MonthData, Shift } from '../lib/types';
 
   export let date: Date;
   export let data: MonthData;
@@ -25,11 +25,13 @@
   $: isSa = wochentag === 'Sa';
   $: isSo = wochentag === 'So';
 
+  function emptyShift(): Shift {
+    return { beginn: '', ende: '', arbeitsort: '', pause: DEFAULT_PAUSE };
+  }
+
   // Form state — reset whenever date changes
-  let arbeitsort = '';
-  let beginn = '';
-  let ende = '';
-  let pause: number = DEFAULT_PAUSE;
+  let dayType = ''; // '' (normal work day), 'Frei', 'Feiertag', 'Urlaub'
+  let shifts: Shift[] = [emptyShift()];
   let soFeiertag = false;
   let uebernachtung = false;
   let spesen = 0;
@@ -37,35 +39,58 @@
 
   $: {
     void dateKey; // trigger reactivity on date change
-    arbeitsort    = entry?.arbeitsort ?? '';
-    beginn        = entry?.beginn ?? '';
-    ende          = entry?.ende ?? '';
-    pause         = entry?.pause ?? DEFAULT_PAUSE;
+    dayType       = entry?.arbeitsort ?? '';
+    shifts        = entry?.shifts?.length ? entry.shifts.map(s => ({ ...s })) : [emptyShift()];
     soFeiertag    = entry?.soFeiertag ?? (weekend.isSaturday || weekend.isSunday);
     uebernachtung = entry?.uebernachtung ?? false;
     spesen        = entry?.spesen ?? 0;
     isDirty       = false;
   }
 
-  $: arbeitszeit = calcArbeitszeit(beginn, ende, pause, arbeitsort);
-  $: overnight = isOvernightShift(beginn, ende);
-  $: isFrei     = arbeitsort === 'Frei';
-  $: isFeiertag = arbeitsort === 'Feiertag';
-  $: isUrlaub   = arbeitsort === 'Urlaub';
-  $: hasContent = !!arbeitsort || !!beginn || !!ende;
+  $: arbeitszeit = calcArbeitszeit({ arbeitsort: dayType, shifts });
+  $: isFrei     = dayType === 'Frei';
+  $: isFeiertag = dayType === 'Feiertag';
+  $: isUrlaub   = dayType === 'Urlaub';
+  $: isWorkday  = !isFrei && !isFeiertag && !isUrlaub;
+  $: hasContent = dayType !== '' || shifts.some(s => s.beginn || s.ende || s.arbeitsort);
 
   function mark() { isDirty = true; }
 
-  function setArbeitsort(v: string) {
-    arbeitsort = v; isDirty = true;
+  function setDayType(v: string) {
+    dayType = v; isDirty = true;
     if (v === 'Feiertag') {
-      soFeiertag = true; beginn = ''; ende = ''; pause = 0; spesen = 0; uebernachtung = false;
+      soFeiertag = true; shifts = []; spesen = 0; uebernachtung = false;
     } else if (v === 'Urlaub') {
-      soFeiertag = false; beginn = ''; ende = ''; pause = 0; spesen = 0; uebernachtung = false;
+      soFeiertag = false; shifts = []; spesen = 0; uebernachtung = false;
     } else if (v === 'Frei') {
-      beginn = ''; ende = ''; pause = 0; spesen = 0; uebernachtung = false;
+      shifts = []; spesen = 0; uebernachtung = false;
       soFeiertag = weekend.isSaturday || weekend.isSunday;
+    } else if (shifts.length === 0) {
+      shifts = [emptyShift()];
     }
+  }
+
+  function addShift() {
+    shifts = [...shifts, emptyShift()];
+    mark();
+  }
+
+  function removeShift(i: number) {
+    const next = shifts.filter((_, idx) => idx !== i);
+    shifts = next.length ? next : [emptyShift()];
+    mark();
+  }
+
+  function setShiftOrt(i: number, v: string) {
+    shifts[i].arbeitsort = v;
+    shifts = shifts;
+    mark();
+  }
+
+  function adjustPause(i: number, delta: number) {
+    shifts[i].pause = Math.max(0, (Number(shifts[i].pause) || 0) + delta);
+    shifts = shifts;
+    mark();
   }
 
   function setUebernachtung(v: boolean) {
@@ -76,8 +101,11 @@
 
   function save() {
     const updated = setEntry(data, {
-      date: dateKey, beginn, ende, arbeitsort, soFeiertag, uebernachtung,
-      pause: Number(pause) || 0, spesen: Number(spesen) || 0,
+      date: dateKey,
+      arbeitsort: dayType,
+      shifts: isWorkday ? shifts.filter(s => s.beginn || s.ende || s.arbeitsort) : [],
+      soFeiertag, uebernachtung,
+      spesen: Number(spesen) || 0,
     });
     dispatch('change', updated);
     isDirty = false;
@@ -139,52 +167,73 @@
     </div>
   </div>
 
-  <!-- Quick chips -->
+  <!-- Day-type chips -->
   <div class="chips">
-    <button class="chip c-frei"    on:click={() => setArbeitsort('Frei')}>Frei</button>
-    <button class="chip c-holiday" on:click={() => setArbeitsort('Feiertag')}>Feiertag</button>
-    <button class="chip c-urlaub"  on:click={() => setArbeitsort('Urlaub')}>Urlaub</button>
-    {#each recentLocations as loc}
-      <button class="chip c-recent" on:click={() => setArbeitsort(loc)}>{loc}</button>
-    {/each}
+    <button class="chip c-work" class:chip-active={isWorkday} on:click={() => setDayType('')}>Arbeitstag</button>
+    <button class="chip c-frei" class:chip-active={isFrei} on:click={() => setDayType('Frei')}>Frei</button>
+    <button class="chip c-holiday" class:chip-active={isFeiertag} on:click={() => setDayType('Feiertag')}>Feiertag</button>
+    <button class="chip c-urlaub" class:chip-active={isUrlaub} on:click={() => setDayType('Urlaub')}>Urlaub</button>
   </div>
 
-  <!-- Form card -->
-  <div class="form-card">
+  <!-- Shifts -->
+  {#if isWorkday}
+    <div class="shifts-list">
+      {#each shifts as shift, i (i)}
+        <div class="shift-card">
+          <div class="shift-card-header">
+            <span class="shift-title">Schicht {i + 1}</span>
+            {#if shifts.length > 1}
+              <button type="button" class="shift-remove" on:click={() => removeShift(i)} aria-label="Schicht entfernen">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            {/if}
+          </div>
 
-    <!-- Arbeitsort -->
-    <div class="field">
-      <label class="fl" for="dv-ort">Arbeitsort</label>
-      <input id="dv-ort" type="text" class="fi"
-        bind:value={arbeitsort}
-        on:input={(e) => setArbeitsort((e.target as HTMLInputElement).value)}
-        placeholder="Ort / Baustelle" />
+          <div class="field">
+            <label class="fl" for="ort-{i}">Arbeitsort</label>
+            <input id="ort-{i}" type="text" class="fi"
+              bind:value={shift.arbeitsort}
+              on:input={() => setShiftOrt(i, shift.arbeitsort)}
+              placeholder="Ort / Baustelle" />
+            {#if recentLocations.length}
+              <div class="shift-chips">
+                {#each recentLocations as loc}
+                  <button type="button" class="chip c-recent" on:click={() => setShiftOrt(i, loc)}>{loc}</button>
+                {/each}
+              </div>
+            {/if}
+          </div>
+
+          <div class="time-row">
+            <TimePicker bind:value={shift.beginn} label="Beginn" on:change={mark} />
+            <div class="time-arrow">→</div>
+            <div class="time-end-wrap">
+              <TimePicker bind:value={shift.ende} label="Ende" on:change={mark} />
+              {#if isOvernightShift(shift.beginn, shift.ende)}
+                <span class="next-day-badge" title="Ende am nächsten Tag">nächster Tag</span>
+              {/if}
+            </div>
+          </div>
+
+          <div class="field-inline">
+            <span class="fl">Pause (Std.)</span>
+            <div class="stepper">
+              <button class="sb" on:click={() => adjustPause(i, -0.5)}>−</button>
+              <span class="sv">{shift.pause}</span>
+              <button class="sb" on:click={() => adjustPause(i, 0.5)}>+</button>
+            </div>
+          </div>
+        </div>
+      {/each}
+
+      <button type="button" class="add-shift-btn" on:click={addShift}>
+        + Schicht hinzufügen
+      </button>
     </div>
+  {/if}
 
-    <!-- Time pickers -->
-    {#if !isFrei && !isFeiertag && !isUrlaub}
-      <div class="time-row">
-        <TimePicker bind:value={beginn} label="Beginn" on:change={mark} />
-        <div class="time-arrow">→</div>
-        <div class="time-end-wrap">
-          <TimePicker bind:value={ende} label="Ende" on:change={mark} />
-          {#if overnight}
-            <span class="next-day-badge" title="Ende am nächsten Tag">nächster Tag</span>
-          {/if}
-        </div>
-      </div>
-
-      <!-- Pause stepper -->
-      <div class="field-inline">
-        <span class="fl">Pause (Std.)</span>
-        <div class="stepper">
-          <button class="sb" on:click={() => { pause = Math.max(0, (Number(pause)||0) - 0.5); mark(); }}>−</button>
-          <span class="sv">{pause}</span>
-          <button class="sb" on:click={() => { pause = (Number(pause)||0) + 0.5; mark(); }}>+</button>
-        </div>
-      </div>
-    {/if}
-
+  <!-- Toggles + Spesen -->
+  <div class="form-card">
     <!-- Toggles — iOS-style switch rows -->
     <div class="switch-list">
       <div class="switch-row">
@@ -197,7 +246,7 @@
         ><span class="ios-switch-knob"></span></button>
       </div>
 
-      {#if !isFrei && !isFeiertag && !isUrlaub}
+      {#if isWorkday}
         <div class="switch-divider"></div>
         <div class="switch-row">
           <span class="sr-icon">🌙</span>
@@ -212,7 +261,7 @@
     </div>
 
     <!-- Spesen -->
-    {#if uebernachtung && !isFrei}
+    {#if uebernachtung && isWorkday}
       <div class="field-inline">
         <span class="fl">Spesen (€)</span>
         <div class="stepper">
@@ -309,12 +358,68 @@
   .chips::-webkit-scrollbar { display: none; }
 
   .chip { white-space: nowrap; border-radius: 999px; padding: 0.35rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; flex-shrink: 0; }
+  .c-work    { background: var(--surface); border-color: var(--border); color: var(--text-secondary); box-shadow: var(--shadow-sm); }
   .c-frei    { background: var(--surface); border-color: var(--border); color: var(--text-secondary); box-shadow: var(--shadow-sm); }
   .c-holiday { background: var(--holiday-soft); border-color: #f6cfa9; color: var(--holiday); }
   .c-urlaub  { background: var(--vacation-soft); border-color: #b7e8c8; color: var(--vacation); }
   .c-urlaub:hover { background: var(--vacation); color: #fff; }
   .c-recent  { background: var(--accent-soft); border-color: var(--accent-soft-border); color: var(--accent-dark); }
   .c-recent:hover { background: var(--accent); color: #fff; }
+
+  .chip-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Shifts */
+  .shifts-list {
+    margin: 0 1rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .shift-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem;
+    display: flex; flex-direction: column; gap: 1.1rem;
+    box-shadow: var(--shadow-md);
+  }
+
+  .shift-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: -0.3rem;
+  }
+
+  .shift-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .shift-remove {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--danger-soft); border: 1px solid #f6c6c1; color: var(--danger);
+    border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  }
+  .shift-remove:hover { background: var(--danger); color: #fff; }
+
+  .shift-chips {
+    display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.5rem;
+  }
+  .shift-chips .chip { padding: 0.25rem 0.65rem; font-size: 0.72rem; }
+
+  .add-shift-btn {
+    padding: 0.75rem;
+    background: var(--surface); border: 1px dashed var(--border-strong);
+    color: var(--text-secondary); border-radius: var(--radius-lg);
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .add-shift-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-dark); }
 
   /* Form */
   .form-card {

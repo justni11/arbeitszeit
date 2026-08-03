@@ -57,7 +57,7 @@
         {@const wt = getWochentag(day)}
         {@const isSa = wt === 'Sa'}
         {@const isSo = wt === 'So'}
-        {@const az = e ? calcArbeitszeit(e.beginn, e.ende, e.pause, e.arbeitsort) : 0}
+        {@const az = calcArbeitszeit(e)}
         {@const isToday = key === todayKey}
         {@const isSel = key === selectedKey}
         <button

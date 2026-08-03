@@ -1,14 +1,42 @@
-import { STORAGE_PREFIX, WORKER_NAME_KEY, RECENT_LOCATIONS_KEY, MAX_RECENT_LOCATIONS } from './constants';
-import type { MonthData } from './types';
+import { STORAGE_PREFIX, WORKER_NAME_KEY, RECENT_LOCATIONS_KEY, MAX_RECENT_LOCATIONS, DEFAULT_PAUSE } from './constants';
+import type { DayEntry, MonthData } from './types';
 
 function monthKey(year: number, month: number): string {
   return `${STORAGE_PREFIX}${year}_${String(month).padStart(2, '0')}`;
 }
 
+/** Upgrades entries saved before multi-shift support (single top-level beginn/ende/pause) to the shifts[] shape. */
+function normalizeEntry(raw: any): DayEntry {
+  if (Array.isArray(raw?.shifts)) return raw as DayEntry;
+
+  const legacyBeginn = raw?.beginn ?? '';
+  const legacyEnde = raw?.ende ?? '';
+  const shifts = legacyBeginn || legacyEnde
+    ? [{ beginn: legacyBeginn, ende: legacyEnde, arbeitsort: raw?.arbeitsort ?? '', pause: raw?.pause ?? DEFAULT_PAUSE }]
+    : [];
+
+  return {
+    date: raw.date,
+    arbeitsort: shifts.length ? '' : (raw?.arbeitsort ?? ''),
+    shifts,
+    soFeiertag: !!raw?.soFeiertag,
+    uebernachtung: !!raw?.uebernachtung,
+    spesen: raw?.spesen ?? 0,
+  };
+}
+
+function normalizeMonth(data: MonthData): MonthData {
+  const entries: Record<string, DayEntry> = {};
+  for (const [key, entry] of Object.entries(data.entries)) {
+    entries[key] = normalizeEntry(entry);
+  }
+  return { ...data, entries };
+}
+
 export function loadMonth(year: number, month: number): MonthData {
   try {
     const raw = localStorage.getItem(monthKey(year, month));
-    if (raw) return JSON.parse(raw) as MonthData;
+    if (raw) return normalizeMonth(JSON.parse(raw) as MonthData);
   } catch {
     // corrupted data — fall through to return empty
   }

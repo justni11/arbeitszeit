@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { getWochentag, toDateKey, formatDecimal } from '../lib/dateUtils';
-  import { calcArbeitszeit, calcTotals, isOvernightShift } from '../lib/calculator';
+  import { calcArbeitszeit, calcShiftHours, calcTotals, isOvernightShift } from '../lib/calculator';
   import { MONTH_NAMES } from '../lib/constants';
   import type { MonthData } from '../lib/types';
 
@@ -40,7 +40,7 @@
     return days.reduce((sum, d) => {
       const e = data.entries[toDateKey(d)];
       if (!e) return sum;
-      return sum + calcArbeitszeit(e.beginn, e.ende, e.pause, e.arbeitsort);
+      return sum + calcArbeitszeit(e);
     }, 0);
   }
 
@@ -74,8 +74,9 @@
       {@const key = toDateKey(day)}
       {@const entry = data.entries[key] ?? null}
       {@const wt = getWochentag(day)}
-      {@const az = entry ? calcArbeitszeit(entry.beginn, entry.ende, entry.pause, entry.arbeitsort) : 0}
-      {@const overnight = entry ? isOvernightShift(entry.beginn, entry.ende) : false}
+      {@const az = calcArbeitszeit(entry)}
+      {@const shifts = entry?.shifts ?? []}
+      {@const isSpecial = entry?.arbeitsort === 'Frei' || entry?.arbeitsort === 'Feiertag' || entry?.arbeitsort === 'Urlaub'}
       {@const isToday = key === todayKey}
       {@const isSelected = key === selectedKey}
       {@const isSa = wt === 'Sa'}
@@ -96,18 +97,26 @@
         </div>
 
         <div class="dc-middle">
-          {#if entry?.arbeitsort}
+          {#if isSpecial}
             <span class="dc-ort">{entry.arbeitsort}</span>
+          {:else if shifts.length}
+            {#each shifts as shift}
+              {@const shiftHours = Math.max(0, calcShiftHours(shift.beginn, shift.ende) - (shift.pause || 0))}
+              <div class="dc-shift">
+                <span class="dc-ort">{shift.arbeitsort}</span>
+                <span class="dc-times">
+                  {shift.beginn} → {shift.ende}
+                  {#if isOvernightShift(shift.beginn, shift.ende)}
+                    <span class="next-day-badge" title="Ende am nächsten Tag">+1</span>
+                  {/if}
+                  {#if shiftHours > 0}
+                    <span class="dc-shift-hours">{formatDecimal(shiftHours)} Std.</span>
+                  {/if}
+                </span>
+              </div>
+            {/each}
           {:else}
             <span class="dc-empty">—</span>
-          {/if}
-          {#if entry?.beginn && entry?.ende}
-            <span class="dc-times">
-              {entry.beginn} → {entry.ende}
-              {#if overnight}
-                <span class="next-day-badge" title="Ende am nächsten Tag">+1</span>
-              {/if}
-            </span>
           {/if}
         </div>
 
@@ -260,6 +269,23 @@
     font-size: 0.75rem;
     color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
+  }
+
+  .dc-shift {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  .dc-shift:not(:last-child) {
+    margin-bottom: 0.3rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .dc-shift-hours {
+    font-weight: 700;
+    color: var(--accent-dark);
+    margin-left: 0.3rem;
   }
 
   .next-day-badge {

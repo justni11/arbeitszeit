@@ -51,7 +51,9 @@
 
   function onChange(e: CustomEvent<MonthData>) {
     data = e.detail; saveMonth(data);
-    for (const entry of Object.values(data.entries)) saveRecentLocation(entry.arbeitsort);
+    for (const entry of Object.values(data.entries)) {
+      for (const shift of entry.shifts) saveRecentLocation(shift.arbeitsort);
+    }
     recentLocations = loadRecentLocations();
   }
 
@@ -91,7 +93,7 @@
         const md = monthUpdates.get(key)!;
         monthUpdates.set(key, setEntry(md, {
           date: toDateKey(cur), arbeitsort: 'Urlaub',
-          beginn: '', ende: '', pause: 0,
+          shifts: [],
           soFeiertag: false, uebernachtung: false, spesen: 0,
         }));
       }

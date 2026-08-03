@@ -1,6 +1,6 @@
 import { MONTH_NAMES } from './constants';
 import { getDaysInMonth, getWochentag, toDateKey, formatDate, formatDecimal } from './dateUtils';
-import { calcArbeitszeit } from './calculator';
+import { calcArbeitszeit, shiftPauseSum } from './calculator';
 import type { MonthData } from './types';
 
 export function exportCSV(data: MonthData): void {
@@ -16,17 +16,19 @@ export function exportCSV(data: MonthData): void {
     if (!entry) {
       rows.push([formatDate(day), getWochentag(day), '', '', '', '', '', '', '', '']);
     } else {
-      const az = calcArbeitszeit(entry.beginn, entry.ende, entry.pause, entry.arbeitsort);
+      const az = calcArbeitszeit(entry);
+      const isSpecial = entry.arbeitsort === 'Frei' || entry.arbeitsort === 'Feiertag' || entry.arbeitsort === 'Urlaub';
+      const pauseSum = shiftPauseSum(entry.shifts);
       rows.push([
         formatDate(day),
         getWochentag(day),
-        entry.beginn,
-        entry.ende,
-        entry.arbeitsort,
+        entry.shifts.map(s => s.beginn).join(' / '),
+        entry.shifts.map(s => s.ende).join(' / '),
+        isSpecial ? entry.arbeitsort : entry.shifts.map(s => s.arbeitsort).join(' / '),
         formatDecimal(az).replace(',', '.'),
         entry.soFeiertag ? 'X' : '',
         entry.uebernachtung ? 'X' : '',
-        entry.pause ? String(entry.pause) : '',
+        pauseSum ? String(pauseSum) : '',
         entry.spesen ? String(entry.spesen) : '',
       ]);
     }

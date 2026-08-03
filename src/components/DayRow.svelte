@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { getWochentag, formatDate, formatDecimal } from '../lib/dateUtils';
-  import { calcArbeitszeit, isOvernightShift } from '../lib/calculator';
+  import { calcArbeitszeit, isOvernightShift, shiftPauseSum } from '../lib/calculator';
   import type { DayEntry } from '../lib/types';
 
   export let date: Date;
@@ -13,15 +13,15 @@
   $: wochentag = getWochentag(date);
   $: isSa = wochentag === 'Sa';
   $: isSo = wochentag === 'So';
-  $: arbeitszeit = entry
-    ? calcArbeitszeit(entry.beginn, entry.ende, entry.pause, entry.arbeitsort)
-    : 0;
-  $: overnight = entry ? isOvernightShift(entry.beginn, entry.ende) : false;
+  $: shifts = entry?.shifts ?? [];
+  $: arbeitszeit = calcArbeitszeit(entry);
+  $: pauseSum = shiftPauseSum(shifts);
   $: isFeiertag = entry?.arbeitsort === 'Feiertag';
   $: isFrei = entry?.arbeitsort === 'Frei';
   $: isUrlaub = entry?.arbeitsort === 'Urlaub';
   $: isWeekend = isSa || isSo;
   $: hasEntry = !!entry && !isFrei;
+  $: isSpecialDay = isFrei || isFeiertag || isUrlaub;
 </script>
 
 {#if printMode}
@@ -29,13 +29,29 @@
   <tr class="print-row" class:print-sa={isSa} class:print-so={isSo}>
     <td class="p-datum">{formatDate(date)}</td>
     <td class="p-tag">{wochentag}</td>
-    <td class="p-time">{entry?.beginn ?? ''}</td>
-    <td class="p-time">{entry?.ende ?? ''}{#if overnight}<sup class="p-next-day">+1</sup>{/if}</td>
-    <td class="p-ort">{entry?.arbeitsort ?? ''}</td>
+    <td class="p-time">
+      {#each shifts as shift}
+        <div class="p-line">{shift.beginn}</div>
+      {/each}
+    </td>
+    <td class="p-time">
+      {#each shifts as shift}
+        <div class="p-line">{shift.ende}{#if isOvernightShift(shift.beginn, shift.ende)}<sup class="p-next-day">+1</sup>{/if}</div>
+      {/each}
+    </td>
+    <td class="p-ort">
+      {#if isSpecialDay}
+        {entry?.arbeitsort ?? ''}
+      {:else}
+        {#each shifts as shift}
+          <div class="p-line">{shift.arbeitsort}</div>
+        {/each}
+      {/if}
+    </td>
     <td class="p-arbeitszeit">{arbeitszeit > 0 ? formatDecimal(arbeitszeit).replace(',', '.') : ''}</td>
     <td class="p-x">{entry?.soFeiertag ? 'X' : ''}</td>
     <td class="p-x">{entry?.uebernachtung ? 'X' : ''}</td>
-    <td class="p-num">{entry?.pause ? entry.pause : ''}</td>
+    <td class="p-num">{pauseSum ? pauseSum : ''}</td>
     <td class="p-num">{entry?.spesen ? entry.spesen : ''}</td>
   </tr>
 {:else}
@@ -60,12 +76,20 @@
     <td class="col-tag">
       <span class="tag-badge" class:tag-weekend={isWeekend}>{wochentag}</span>
     </td>
-    <td class="col-time">{entry?.beginn ?? ''}</td>
     <td class="col-time">
-      {entry?.ende ?? ''}
-      {#if overnight}
-        <span class="next-day-badge" title="Ende am nächsten Tag">+1</span>
-      {/if}
+      {#each shifts as shift}
+        <div class="time-line">{shift.beginn}</div>
+      {/each}
+    </td>
+    <td class="col-time">
+      {#each shifts as shift}
+        <div class="time-line">
+          {shift.ende}
+          {#if isOvernightShift(shift.beginn, shift.ende)}
+            <span class="next-day-badge" title="Ende am nächsten Tag">+1</span>
+          {/if}
+        </div>
+      {/each}
     </td>
     <td class="col-ort">
       {#if isFrei}
@@ -75,7 +99,9 @@
       {:else if isUrlaub}
         <span class="pill pill-urlaub">Urlaub</span>
       {:else}
-        <span class="ort-text">{entry?.arbeitsort ?? ''}</span>
+        {#each shifts as shift}
+          <div class="time-line ort-text">{shift.arbeitsort}</div>
+        {/each}
       {/if}
     </td>
     <td class="col-num">
@@ -93,7 +119,7 @@
         <span class="dot dot-nacht" title="Übernachtung"></span>
       {/if}
     </td>
-    <td class="col-num">{entry?.pause ? entry.pause : ''}</td>
+    <td class="col-num">{pauseSum ? pauseSum : ''}</td>
     <td class="col-num">{entry?.spesen ? entry.spesen + ' €' : ''}</td>
   </tr>
 {/if}
@@ -113,6 +139,7 @@
     font-size: 0.875rem;
     color: var(--text-secondary);
     white-space: nowrap;
+    vertical-align: top;
   }
 
   /* Weekend tints */
@@ -148,6 +175,12 @@
     color: var(--text-secondary);
     font-size: 0.83rem;
   }
+
+  .time-line {
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .time-line:not(:last-child) { margin-bottom: 0.1rem; }
 
   .next-day-badge {
     display: inline-block;
@@ -205,6 +238,14 @@
     padding: 0.5pt 3pt;
     font-size: 9pt;
   }
+
+  .p-time, .p-ort { vertical-align: top; }
+
+  .p-line {
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .p-line:not(:last-child) { border-bottom: 0.5pt dotted #999; }
 
   .p-datum { min-width: 50pt; }
   .p-tag   { width: 18pt; text-align: center; font-weight: bold; }

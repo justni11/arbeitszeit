@@ -1,31 +1,34 @@
 import { parseTimeToDecimal } from './dateUtils';
-import type { DayEntry, MonthData, MonthTotals } from './types';
+import type { DayEntry, MonthData, MonthTotals, Shift } from './types';
 
-export function calcArbeitszeit(
-  beginn: string,
-  ende: string,
-  pause: number,
-  arbeitsort: string
-): number {
-  if (arbeitsort === 'Feiertag' || arbeitsort === 'Urlaub') return 8;
+/** Hours worked in a single shift, handling overnight shifts (ende <= beginn means next day). */
+export function calcShiftHours(beginn: string, ende: string): number {
   if (!beginn || !ende) return 0;
-
   let start = parseTimeToDecimal(beginn);
   let end = parseTimeToDecimal(ende);
-
-  // Overnight shift: end is next morning
-  if (end <= start) {
-    end += 24;
-  }
-
-  const worked = end - start - pause;
-  return Math.max(0, Math.round(worked * 100) / 100);
+  if (end <= start) end += 24;
+  return end - start;
 }
 
-/** True when ende falls on the next calendar day relative to beginn (e.g. 18.00 -> 03.00). */
+/** True when a shift's ende falls on the next calendar day relative to its beginn (e.g. 18.00 -> 03.00). */
 export function isOvernightShift(beginn: string, ende: string): boolean {
   if (!beginn || !ende) return false;
   return parseTimeToDecimal(ende) <= parseTimeToDecimal(beginn);
+}
+
+export function calcArbeitszeit(entry: Pick<DayEntry, 'arbeitsort' | 'shifts'> | null | undefined): number {
+  if (!entry) return 0;
+  if (entry.arbeitsort === 'Feiertag' || entry.arbeitsort === 'Urlaub') return 8;
+
+  let worked = 0;
+  for (const shift of entry.shifts) {
+    worked += calcShiftHours(shift.beginn, shift.ende) - (shift.pause || 0);
+  }
+  return Math.max(0, Math.round(worked * 100) / 100);
+}
+
+export function shiftPauseSum(shifts: Shift[]): number {
+  return shifts.reduce((sum, s) => sum + (s.pause || 0), 0);
 }
 
 export function calcTotals(data: MonthData): MonthTotals {
@@ -36,11 +39,10 @@ export function calcTotals(data: MonthData): MonthTotals {
   let spesenSum = 0;
 
   for (const entry of Object.values(data.entries)) {
-    const az = calcArbeitszeit(entry.beginn, entry.ende, entry.pause, entry.arbeitsort);
-    arbeitszeitSum += az;
+    arbeitszeitSum += calcArbeitszeit(entry);
     if (entry.soFeiertag) soFeiertageCount++;
     if (entry.uebernachtung) uebernachtungCount++;
-    pauseSum += entry.pause || 0;
+    pauseSum += shiftPauseSum(entry.shifts);
     spesenSum += entry.spesen || 0;
   }
 
