@@ -9,7 +9,7 @@
   <tr class="totals-row">
     <td colspan="4" class="totals-label">Stunden</td>
     <td></td>
-    <td class="p-num">{formatDecimal(totals.arbeitszeitSum).replace(',', '.') || '0'}</td>
+    <td class="p-arbeitszeit">{formatDecimal(totals.arbeitszeitSum).replace(',', '.') || '0'}</td>
     <td class="p-x">{totals.soFeiertageCount || ''}</td>
     <td class="p-x">{totals.uebernachtungCount || ''}</td>
     <td class="p-num">{totals.pauseSum || ''}</td>
@@ -41,6 +41,7 @@
     border-top: 2px solid #000;
   }
 
-  .p-num { width: 28pt; text-align: center; }
-  .p-x   { width: 24pt; text-align: center; }
+  .p-arbeitszeit { width: 18pt; text-align: center; }
+  .p-num { width: 13pt; text-align: center; }
+  .p-x   { width: 10pt; text-align: center; }
 </style>

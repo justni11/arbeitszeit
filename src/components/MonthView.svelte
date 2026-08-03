@@ -75,7 +75,7 @@
         <th class="p-time rotated"><span>Beginn</span></th>
         <th class="p-time rotated"><span>Ende</span></th>
         <th class="p-ort">Arbeitsort</th>
-        <th class="p-num rotated"><span>Arbeitszeit</span></th>
+        <th class="p-arbeitszeit rotated"><span>Arbeitszeit</span></th>
         <th class="p-x rotated"><span>So + Feiertag</span></th>
         <th class="p-x rotated"><span>Übernachtung</span></th>
         <th class="p-num rotated"><span>Pause</span></th>
@@ -176,9 +176,10 @@
   .p-datum { text-align: left; min-width: 50pt; }
   .p-tag   { width: 18pt; }
   .p-time  { width: 28pt; }
-  .p-ort   { min-width: 160pt; text-align: left; }
-  .p-num   { width: 18pt; }
-  .p-x     { width: 15pt; }
+  .p-ort   { min-width: 200pt; text-align: left; }
+  .p-arbeitszeit { width: 18pt; }
+  .p-num   { width: 13pt; }
+  .p-x     { width: 10pt; }
 
   .rotated {
     height: 64pt;

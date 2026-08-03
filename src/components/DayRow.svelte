@@ -31,7 +31,7 @@
     <td class="p-time">{entry?.beginn ?? ''}</td>
     <td class="p-time">{entry?.ende ?? ''}</td>
     <td class="p-ort">{entry?.arbeitsort ?? ''}</td>
-    <td class="p-num">{arbeitszeit > 0 ? formatDecimal(arbeitszeit).replace(',', '.') : ''}</td>
+    <td class="p-arbeitszeit">{arbeitszeit > 0 ? formatDecimal(arbeitszeit).replace(',', '.') : ''}</td>
     <td class="p-x">{entry?.soFeiertag ? 'X' : ''}</td>
     <td class="p-x">{entry?.uebernachtung ? 'X' : ''}</td>
     <td class="p-num">{entry?.pause ? entry.pause : ''}</td>
@@ -191,7 +191,8 @@
   .p-datum { min-width: 50pt; }
   .p-tag   { width: 18pt; text-align: center; font-weight: bold; }
   .p-time  { width: 28pt; text-align: center; }
-  .p-ort   { min-width: 160pt; }
-  .p-num   { width: 18pt; text-align: center; }
-  .p-x     { width: 15pt; text-align: center; font-weight: bold; }
+  .p-ort   { min-width: 200pt; }
+  .p-arbeitszeit { width: 18pt; text-align: center; }
+  .p-num   { width: 13pt; text-align: center; }
+  .p-x     { width: 10pt; text-align: center; font-weight: bold; }
 </style>
