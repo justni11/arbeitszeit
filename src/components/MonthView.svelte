@@ -179,7 +179,7 @@
   .p-ort   { min-width: 200pt; text-align: left; }
   .p-arbeitszeit { width: 18pt; }
   .p-num   { width: 13pt; }
-  .p-x     { width: 10pt; }
+  .p-x     { width: 7pt; }
 
   .rotated {
     height: 64pt;

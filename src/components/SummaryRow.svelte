@@ -43,5 +43,5 @@
 
   .p-arbeitszeit { width: 18pt; text-align: center; }
   .p-num { width: 13pt; text-align: center; }
-  .p-x   { width: 10pt; text-align: center; }
+  .p-x   { width: 7pt; text-align: center; }
 </style>
