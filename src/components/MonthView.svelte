@@ -176,9 +176,9 @@
   .p-datum { text-align: left; min-width: 50pt; }
   .p-tag   { width: 18pt; }
   .p-time  { width: 28pt; }
-  .p-ort   { min-width: 80pt; text-align: left; }
-  .p-num   { width: 28pt; }
-  .p-x     { width: 24pt; }
+  .p-ort   { min-width: 160pt; text-align: left; }
+  .p-num   { width: 18pt; }
+  .p-x     { width: 15pt; }
 
   .rotated {
     height: 64pt;

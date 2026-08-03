@@ -191,7 +191,7 @@
   .p-datum { min-width: 50pt; }
   .p-tag   { width: 18pt; text-align: center; font-weight: bold; }
   .p-time  { width: 28pt; text-align: center; }
-  .p-ort   { min-width: 80pt; }
-  .p-num   { width: 28pt; text-align: center; }
-  .p-x     { width: 24pt; text-align: center; font-weight: bold; }
+  .p-ort   { min-width: 160pt; }
+  .p-num   { width: 18pt; text-align: center; }
+  .p-x     { width: 15pt; text-align: center; font-weight: bold; }
 </style>
