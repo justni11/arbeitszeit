@@ -22,6 +22,12 @@ export function calcArbeitszeit(
   return Math.max(0, Math.round(worked * 100) / 100);
 }
 
+/** True when ende falls on the next calendar day relative to beginn (e.g. 18.00 -> 03.00). */
+export function isOvernightShift(beginn: string, ende: string): boolean {
+  if (!beginn || !ende) return false;
+  return parseTimeToDecimal(ende) <= parseTimeToDecimal(beginn);
+}
+
 export function calcTotals(data: MonthData): MonthTotals {
   let arbeitszeitSum = 0;
   let soFeiertageCount = 0;

@@ -3,7 +3,7 @@
   import { fade, fly } from 'svelte/transition';
   import { backOut } from 'svelte/easing';
   import { DEFAULT_PAUSE, DEFAULT_SPESEN } from '../lib/constants';
-  import { calcArbeitszeit } from '../lib/calculator';
+  import { calcArbeitszeit, isOvernightShift } from '../lib/calculator';
   import { formatDecimal, isWeekend, getWochentag, formatDate } from '../lib/dateUtils';
   import type { DayEntry } from '../lib/types';
 
@@ -34,6 +34,7 @@
   let spesen = entry?.spesen ?? 0;
 
   $: arbeitszeit = calcArbeitszeit(beginn, ende, pause, arbeitsort);
+  $: overnight = isOvernightShift(beginn, ende);
   $: isFrei = arbeitsort === 'Frei';
   $: isFeiertag = arbeitsort === 'Feiertag';
 
@@ -117,7 +118,12 @@
               placeholder="08.00" inputmode="decimal" />
           </div>
           <div class="field">
-            <label class="field-label" for="ende">Ende</label>
+            <label class="field-label" for="ende">
+              Ende
+              {#if overnight}
+                <span class="next-day-badge" title="Ende am nächsten Tag">nächster Tag</span>
+              {/if}
+            </label>
             <input id="ende" type="text" class="field-input" bind:value={ende}
               placeholder="16.00" inputmode="decimal" />
           </div>
@@ -299,6 +305,22 @@
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .next-day-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-border);
+    border-radius: 999px;
+    padding: 0.05rem 0.45rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    white-space: nowrap;
   }
 
   .field-input {

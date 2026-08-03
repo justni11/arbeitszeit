@@ -3,7 +3,7 @@
   import { fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { DEFAULT_PAUSE, DEFAULT_SPESEN, MONTH_NAMES } from '../lib/constants';
-  import { calcArbeitszeit } from '../lib/calculator';
+  import { calcArbeitszeit, isOvernightShift } from '../lib/calculator';
   import { formatDecimal, isWeekend, getWochentag, toDateKey } from '../lib/dateUtils';
   import { setEntry, deleteEntry } from '../lib/storage';
   import TimePicker from './TimePicker.svelte';
@@ -48,6 +48,7 @@
   }
 
   $: arbeitszeit = calcArbeitszeit(beginn, ende, pause, arbeitsort);
+  $: overnight = isOvernightShift(beginn, ende);
   $: isFrei     = arbeitsort === 'Frei';
   $: isFeiertag = arbeitsort === 'Feiertag';
   $: isUrlaub   = arbeitsort === 'Urlaub';
@@ -165,7 +166,12 @@
       <div class="time-row">
         <TimePicker bind:value={beginn} label="Beginn" on:change={mark} />
         <div class="time-arrow">→</div>
-        <TimePicker bind:value={ende} label="Ende" on:change={mark} />
+        <div class="time-end-wrap">
+          <TimePicker bind:value={ende} label="Ende" on:change={mark} />
+          {#if overnight}
+            <span class="next-day-badge" title="Ende am nächsten Tag">nächster Tag</span>
+          {/if}
+        </div>
       </div>
 
       <!-- Pause stepper -->
@@ -337,6 +343,19 @@
     display: flex; align-items: flex-end; justify-content: center; gap: 0.75rem;
   }
   .time-arrow { color: var(--text-tertiary); font-size: 1.2rem; padding-bottom: 1.2rem; flex-shrink: 0; }
+
+  .time-end-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+  .next-day-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-border);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
 
   /* Inline field (label + control side by side) */
   .field-inline {

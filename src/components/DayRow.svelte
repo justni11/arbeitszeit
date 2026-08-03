@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { getWochentag, formatDate, formatDecimal } from '../lib/dateUtils';
-  import { calcArbeitszeit } from '../lib/calculator';
+  import { calcArbeitszeit, isOvernightShift } from '../lib/calculator';
   import type { DayEntry } from '../lib/types';
 
   export let date: Date;
@@ -16,6 +16,7 @@
   $: arbeitszeit = entry
     ? calcArbeitszeit(entry.beginn, entry.ende, entry.pause, entry.arbeitsort)
     : 0;
+  $: overnight = entry ? isOvernightShift(entry.beginn, entry.ende) : false;
   $: isFeiertag = entry?.arbeitsort === 'Feiertag';
   $: isFrei = entry?.arbeitsort === 'Frei';
   $: isUrlaub = entry?.arbeitsort === 'Urlaub';
@@ -29,7 +30,7 @@
     <td class="p-datum">{formatDate(date)}</td>
     <td class="p-tag">{wochentag}</td>
     <td class="p-time">{entry?.beginn ?? ''}</td>
-    <td class="p-time">{entry?.ende ?? ''}</td>
+    <td class="p-time">{entry?.ende ?? ''}{#if overnight}<sup class="p-next-day">+1</sup>{/if}</td>
     <td class="p-ort">{entry?.arbeitsort ?? ''}</td>
     <td class="p-arbeitszeit">{arbeitszeit > 0 ? formatDecimal(arbeitszeit).replace(',', '.') : ''}</td>
     <td class="p-x">{entry?.soFeiertag ? 'X' : ''}</td>
@@ -60,7 +61,12 @@
       <span class="tag-badge" class:tag-weekend={isWeekend}>{wochentag}</span>
     </td>
     <td class="col-time">{entry?.beginn ?? ''}</td>
-    <td class="col-time">{entry?.ende ?? ''}</td>
+    <td class="col-time">
+      {entry?.ende ?? ''}
+      {#if overnight}
+        <span class="next-day-badge" title="Ende am nächsten Tag">+1</span>
+      {/if}
+    </td>
     <td class="col-ort">
       {#if isFrei}
         <span class="pill pill-frei">Frei</span>
@@ -143,6 +149,18 @@
     font-size: 0.83rem;
   }
 
+  .next-day-badge {
+    display: inline-block;
+    vertical-align: super;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border-radius: 3px;
+    padding: 0 0.2rem;
+    margin-left: 0.1rem;
+  }
+
   /* Ort */
   .col-ort { min-width: 10rem; }
   .ort-text { color: var(--text-primary); font-weight: 500; }
@@ -191,6 +209,7 @@
   .p-datum { min-width: 50pt; }
   .p-tag   { width: 18pt; text-align: center; font-weight: bold; }
   .p-time  { width: 28pt; text-align: center; }
+  .p-next-day { font-size: 5pt; font-weight: bold; }
   .p-ort   { min-width: 200pt; }
   .p-arbeitszeit { width: 18pt; text-align: center; }
   .p-num   { width: 13pt; text-align: center; }

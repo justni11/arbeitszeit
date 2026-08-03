@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { getWochentag, toDateKey, formatDecimal } from '../lib/dateUtils';
-  import { calcArbeitszeit, calcTotals } from '../lib/calculator';
+  import { calcArbeitszeit, calcTotals, isOvernightShift } from '../lib/calculator';
   import { MONTH_NAMES } from '../lib/constants';
   import type { MonthData } from '../lib/types';
 
@@ -75,6 +75,7 @@
       {@const entry = data.entries[key] ?? null}
       {@const wt = getWochentag(day)}
       {@const az = entry ? calcArbeitszeit(entry.beginn, entry.ende, entry.pause, entry.arbeitsort) : 0}
+      {@const overnight = entry ? isOvernightShift(entry.beginn, entry.ende) : false}
       {@const isToday = key === todayKey}
       {@const isSelected = key === selectedKey}
       {@const isSa = wt === 'Sa'}
@@ -101,7 +102,12 @@
             <span class="dc-empty">—</span>
           {/if}
           {#if entry?.beginn && entry?.ende}
-            <span class="dc-times">{entry.beginn} → {entry.ende}</span>
+            <span class="dc-times">
+              {entry.beginn} → {entry.ende}
+              {#if overnight}
+                <span class="next-day-badge" title="Ende am nächsten Tag">+1</span>
+              {/if}
+            </span>
           {/if}
         </div>
 
@@ -254,6 +260,17 @@
     font-size: 0.75rem;
     color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
+  }
+
+  .next-day-badge {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border-radius: 3px;
+    padding: 0 0.2rem;
+    margin-left: 0.1rem;
   }
 
   .dc-empty { color: var(--border-strong); font-size: 0.9rem; }
