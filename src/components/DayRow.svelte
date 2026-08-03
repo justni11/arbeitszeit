@@ -184,7 +184,7 @@
   /* ===== PRINT ROWS ===== */
   .print-row td {
     border: 1px solid #000;
-    padding: 2pt 3pt;
+    padding: 0.5pt 3pt;
     font-size: 9pt;
   }
 

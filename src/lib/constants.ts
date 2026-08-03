@@ -1,4 +1,4 @@
-export const DEFAULT_PAUSE = 1;
+export const DEFAULT_PAUSE = 0;
 export const DEFAULT_SPESEN = 28;
 export const WOCHENTAG = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 export const STORAGE_PREFIX = 'ibotraffic_worklog_';
